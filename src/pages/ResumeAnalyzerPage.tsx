@@ -1,3 +1,4 @@
+
 import * as pdfjsLib from 'pdfjs-dist'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -72,7 +73,7 @@ const analysisSections = [
   },
 ]
 
-const missingKeywords = ['Kubernetes', 'CI/CD', 'Agile', 'REST APIs', 'GraphQL', 'Microservices', 'Docker']
+
 
 export default function ResumeAnalyzerPage() {
   const [uploaded, setUploaded] = useState(false)
@@ -80,6 +81,7 @@ const [analyzing, setAnalyzing] = useState(false)
 const [fileName, setFileName] = useState('')
 const [foundSkills, setFoundSkills] = useState<string[]>([])
 const [resumeText, setResumeText] = useState('')
+const [analysisResult, setAnalysisResult] = useState<any>(null)
 const extractTextFromPDF = async (file: File) => {
   const arrayBuffer = await file.arrayBuffer()
 
@@ -107,12 +109,53 @@ const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
 
   if (!file) return
+const formData = new FormData()
+formData.append("resume", file)
 
+const uploadResponse = await fetch(
+  "http://localhost:5000/upload-resume",
+  {
+    method: "POST",
+    body: formData,
+  }
+)
+
+const uploadData = await uploadResponse.json()
+
+console.log("Backend Response:", uploadData)
   const extractedText = await extractTextFromPDF(file)
 
   console.log(extractedText)
 
   setResumeText(extractedText)
+  const analysisResponse = await fetch(
+  "http://localhost:5000/analyze-resume",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      resumeText: extractedText,
+    }),
+  }
+)
+
+const analysisData = await analysisResponse.json()
+
+console.log("Gemini Analysis:", analysisData)
+try {
+  const cleanResult = analysisData.result
+  .replace(/```json/g, "")
+  .replace(/```/g, "")
+  .trim()
+
+const parsedResult = JSON.parse(cleanResult)
+
+setAnalysisResult(parsedResult)
+} catch (err) {
+  console.error("JSON Parse Error:", err)
+}
 const sampleSkills = [
   'JavaScript',
   'React',
@@ -146,10 +189,7 @@ setFoundSkills(detectedSkills)
   
 }
 
-  const overallScore = Math.round(
-  analysisSections.reduce((acc, s) => acc + s.score, 0) /
-  analysisSections.length
-)
+ const overallScore = analysisResult?.atsScore || 79
   return (
     <PageLayout title="Resume Analyzer">
       {!uploaded ? (
@@ -209,6 +249,19 @@ setFoundSkills(detectedSkills)
                   <p className="text-text-secondary text-sm mt-1">
                     Your resume scores {overallScore}/100. Here are the key areas to improve.
                   </p>
+                  {analysisResult && (
+  <div className="mt-4 text-white">
+    <h3>ATS Score: {analysisResult.atsScore}</h3>
+
+    <h3 className="mt-2">Recommended Roles</h3>
+
+    <ul>
+      {analysisResult.recommendedRoles?.map((role: string) => (
+        <li key={role}>{role}</li>
+      ))}
+    </ul>
+  </div>
+)}
                   <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
                     <button className="px-4 py-2 rounded-pill bg-cyan text-deep text-xs font-semibold hover:brightness-110 transition-all flex items-center gap-1.5">
                       <RefreshCw className="w-3 h-3" />
@@ -286,17 +339,50 @@ setFoundSkills(detectedSkills)
                 These keywords are commonly found in job descriptions for your target role but are missing from your resume.
               </p>
               <div className="flex flex-wrap gap-2">
-                {missingKeywords.map((kw) => (
-                  <span
-                    key={kw}
-                    className="px-3 py-1.5 rounded-pill bg-coral/10 text-coral text-xs font-medium border border-coral/20"
-                  >
-                    {kw}
-                  </span>
-                ))}
+                {analysisResult?.missingSkills?.map((skill: string) => (
+  <span
+    key={skill}
+    className="px-3 py-1.5 rounded-pill bg-coral/10 text-coral text-xs font-medium border border-coral/20"
+  >
+    {skill}
+  </span>
+))}
               </div>
             </div>
           </ScrollReveal>
+
+{analysisResult?.strengths && (
+  <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
+    <h3 className="font-display font-semibold text-text-primary mb-4">
+      Strengths
+    </h3>
+
+    <ul className="space-y-2">
+      {analysisResult.strengths.map((item: string) => (
+        <li key={item} className="text-green-400">
+          ✅ {item}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+{analysisResult?.weaknesses && (
+  <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
+    <h3 className="font-display font-semibold text-text-primary mb-4">
+      Areas to Improve
+    </h3>
+
+    <ul className="space-y-2">
+      {analysisResult.weaknesses.map((item: string) => (
+        <li key={item} className="text-red-400">
+          ⚠️ {item}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+
         </>
       )}
     </PageLayout>
