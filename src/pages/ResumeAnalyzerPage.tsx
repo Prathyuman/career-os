@@ -142,17 +142,22 @@ console.log("Backend Response:", uploadData)
 )
 
 const analysisData = await analysisResponse.json()
-
+console.log("FULL ANALYSIS DATA:", analysisData)
 console.log("Gemini Analysis:", analysisData)
 try {
+  if (!analysisData.success || !analysisData.result) {
+    console.error("Backend Error:", analysisData)
+    return
+  }
+
   const cleanResult = analysisData.result
-  .replace(/```json/g, "")
-  .replace(/```/g, "")
-  .trim()
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim()
 
-const parsedResult = JSON.parse(cleanResult)
+  const parsedResult = JSON.parse(cleanResult)
 
-setAnalysisResult(parsedResult)
+  setAnalysisResult(parsedResult)
 } catch (err) {
   console.error("JSON Parse Error:", err)
 }
