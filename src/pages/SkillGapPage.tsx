@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import PageLayout from '../components/PageLayout'
 import ScrollReveal from '../components/ScrollReveal'
 import {
@@ -36,9 +37,48 @@ const recommendations = [
   { title: 'GraphQL Fundamentals', type: 'Course', duration: '4 weeks', icon: BookOpen },
 ]
 
+// TODO: Tomorrow replace hardcoded skills with Resume Analyzer + Gemini API
+
 export default function SkillGapPage() {
+  const [selectedRole, setSelectedRole] = useState('Full Stack Developer')
+
   return (
     <PageLayout title="Skill Gap Analysis">
+
+      {/* Role Selection */}
+      <ScrollReveal>
+        <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
+          <h3 className="font-display font-semibold text-text-primary mb-4">
+            Target Career Role
+          </h3>
+
+          <div className="flex flex-col md:flex-row gap-3">
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="flex-1 p-3 rounded-lg bg-elevated border border-border-subtle text-text-primary"
+            >
+              <option>Frontend Developer</option>
+              <option>Backend Developer</option>
+              <option>Full Stack Developer</option>
+              <option>Data Analyst</option>
+              <option>Data Scientist</option>
+              <option>AI Engineer</option>
+              <option>DevOps Engineer</option>
+              <option>Mobile App Developer</option>
+            </select>
+
+            <button className="px-6 py-3 rounded-lg bg-cyan text-black font-medium hover:opacity-90 transition">
+              Analyze Skills
+            </button>
+          </div>
+
+          <p className="text-text-muted text-sm mt-3">
+            Selected Role: {selectedRole}
+          </p>
+        </div>
+      </ScrollReveal>
+
       {/* Overview */}
       <ScrollReveal>
         <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
@@ -46,10 +86,14 @@ export default function SkillGapPage() {
             <div className="w-12 h-12 rounded-full bg-coral/20 flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-coral" />
             </div>
+
             <div>
-              <h3 className="font-display font-semibold text-text-primary">7 Skill Gaps Identified</h3>
+              <h3 className="font-display font-semibold text-text-primary">
+                7 Skill Gaps Identified
+              </h3>
+
               <p className="text-text-secondary text-sm mt-0.5">
-                Based on your target role (Senior Software Engineer), we've identified key areas for improvement.
+                Based on your target role ({selectedRole}), we've identified key areas for improvement.
               </p>
             </div>
           </div>
@@ -57,6 +101,7 @@ export default function SkillGapPage() {
       </ScrollReveal>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
         {/* Current Skills */}
         <ScrollReveal>
           <div className="bg-surface rounded-lg border border-border-subtle p-6">
@@ -64,6 +109,7 @@ export default function SkillGapPage() {
               <CheckCircle className="w-4 h-4 text-cyan" />
               Current Skills
             </h3>
+
             <div className="space-y-3">
               {currentSkills.map((skill) => (
                 <div key={skill.name}>
@@ -71,8 +117,12 @@ export default function SkillGapPage() {
                     <span className="text-text-primary">{skill.name}</span>
                     <span className="text-cyan">{skill.level}%</span>
                   </div>
+
                   <div className="h-2 bg-elevated rounded-full overflow-hidden">
-                    <div className="h-full bg-cyan rounded-full transition-all" style={{ width: `${skill.level}%` }} />
+                    <div
+                      className="h-full bg-cyan rounded-full transition-all"
+                      style={{ width: `${skill.level}%` }}
+                    />
                   </div>
                 </div>
               ))}
@@ -80,22 +130,30 @@ export default function SkillGapPage() {
           </div>
         </ScrollReveal>
 
-        {/* Target Skills Gap */}
+        {/* Skills Gap */}
         <ScrollReveal delay={0.1}>
           <div className="bg-surface rounded-lg border border-border-subtle p-6">
             <h3 className="font-display font-semibold text-text-primary mb-4 flex items-center gap-2">
               <Target className="w-4 h-4 text-coral" />
               Skills to Develop
             </h3>
+
             <div className="space-y-3">
               {targetSkills.map((skill) => (
                 <div key={skill.name}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-text-primary">{skill.name}</span>
-                    <span className="text-text-muted">{skill.current}% / {skill.required}%</span>
+                    <span className="text-text-muted">
+                      {skill.current}% / {skill.required}%
+                    </span>
                   </div>
+
                   <div className="h-2 bg-elevated rounded-full overflow-hidden relative">
-                    <div className="h-full bg-coral/30 rounded-full" style={{ width: `${skill.required}%` }} />
+                    <div
+                      className="h-full bg-coral/30 rounded-full"
+                      style={{ width: `${skill.required}%` }}
+                    />
+
                     <div
                       className="h-full bg-cyan rounded-full absolute top-0 left-0"
                       style={{ width: `${skill.current}%` }}
@@ -115,6 +173,7 @@ export default function SkillGapPage() {
             <Zap className="w-4 h-4 text-cyan" />
             Recommended Learning
           </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {recommendations.map((rec) => (
               <div
@@ -124,15 +183,18 @@ export default function SkillGapPage() {
                 <div className="w-10 h-10 rounded-lg bg-cyan/10 flex items-center justify-center flex-shrink-0">
                   <rec.icon className="w-5 h-5 text-cyan" />
                 </div>
+
                 <div className="flex-1">
                   <div className="text-text-primary text-sm font-medium group-hover:text-cyan transition-colors">
                     {rec.title}
                   </div>
+
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-text-muted text-xs">{rec.type}</span>
                     <span className="text-text-muted text-xs">{rec.duration}</span>
                   </div>
                 </div>
+
                 <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-cyan group-hover:translate-x-1 transition-all flex-shrink-0" />
               </div>
             ))}

@@ -52,16 +52,17 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
-    const user = auth.currentUser
+  const user = auth.currentUser
 
-    if (user) {
-      setUserData({
-        name: user.displayName || 'User',
-        email: user.email || '',
-        photoURL: user.photoURL || '',
-      })
-    }
-  }, [])
+  
+  if (user) {
+    setUserData({
+      name: user.displayName || 'User',
+      email: user.email || '',
+      photoURL: user.photoURL || '',
+    })
+  }
+}, [])
 
   return (
     <PageLayout title="Profile">
@@ -70,17 +71,16 @@ export default function ProfilePage() {
         <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
            <div className="w-20 h-20 rounded-full overflow-hidden bg-cyan/20">
-  {userData.photoURL ? (
-    <img
-      src={userData.photoURL}
-      alt="Profile"
-      className="w-full h-full object-cover"
-    />
-  ) : (
-    <div className="w-full h-full flex items-center justify-center text-cyan font-display text-2xl font-bold">
-      {userData.name.charAt(0)}
-    </div>
-  )}
+  <img
+    src={
+      userData.photoURL ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        userData.name
+      )}&background=0D8ABC&color=fff`
+    }
+    alt="Profile"
+    className="w-full h-full object-cover"
+  />
 </div>
             <div className="flex-1">
               <div className="flex items-center gap-3">
