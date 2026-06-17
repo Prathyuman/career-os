@@ -6,87 +6,94 @@ const multer = require("multer");
 const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
-
+console.log("API KEY:", process.env.GEMINI_API_KEY);
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+apiKey: process.env.GEMINI_API_KEY,
 });
 
 app.use(cors());
 app.use(express.json());
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+destination: function (req, file, cb) {
+cb(null, "uploads/");
+},
+filename: function (req, file, cb) {
+cb(null, Date.now() + "-" + file.originalname);
+},
 });
 
 const upload = multer({ storage });
 
 app.get("/", (req, res) => {
-  res.send("Career OS Backend Running 🚀");
+res.send("Career OS Backend Running 🚀");
 });
 
 app.post("/upload-resume", upload.single("resume"), (req, res) => {
-  res.json({
-    success: true,
-    file: req.file,
-    message: "Resume uploaded successfully!",
-  });
+res.json({
+success: true,
+file: req.file,
+message: "Resume uploaded successfully!",
+});
 });
 
 app.post("/analyze-resume", async (req, res) => {
-  console.log("🔥 Analyze route hit");
-
   try {
-    const { resumeText } = req.body;
+    console.log("🔥 Analyze route hit");
 
-    console.log("Resume length:", resumeText?.length);
+    const { resumeText, targetRole } = req.body;
+
+    if (!resumeText) {
+      return res.status(400).json({
+        success: false,
+        error: "Resume text is required",
+      });
+    }
 
     const prompt = `
-Analyze this resume and return ONLY valid JSON.
+Analyze the following resume for the target role: ${targetRole}
+
+Resume:
+${resumeText}
+
+Return ONLY valid JSON in this format:
 
 {
-  "atsScore": number,
+  "atsScore": 0,
+  "roleMatch": 0,
   "strengths": [],
   "weaknesses": [],
   "missingSkills": [],
   "suggestions": [],
-  "recommendedRoles": []
+  "recommendedRoles": [],
+  "areasToFocus": [],
+  "learningRoadmap": []
 }
-
-Resume:
-${resumeText}
 `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    console.log("✅ Prompt ready");
+
+    const result = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
       contents: prompt,
     });
 
-    console.log("🔥 FULL GEMINI RESPONSE:");
-    console.log(response);
+    console.log("✅ Gemini responded");
 
-    let resultText = "";
+    const text =
+      result?.text ||
+      result?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
 
-    if (typeof response.text === "function") {
-      resultText = response.text();
-    } else {
-      resultText = response.text;
-    }
-
-    console.log("🔥 RESULT TEXT:");
-    console.log(resultText);
+    console.log(text);
 
     res.json({
       success: true,
-      result: resultText,
+      result: text,
     });
+
   } catch (error) {
-    console.error("🔥 GEMINI ERROR:");
-    console.error(error);
+    console.error("❌ GEMINI ERROR:", error);
 
     res.status(500).json({
       success: false,
@@ -94,7 +101,6 @@ ${resumeText}
     });
   }
 });
-
 app.listen(5000, () => {
-  console.log("Server running on port 5000");
+console.log("Server running on port 5000");
 });
