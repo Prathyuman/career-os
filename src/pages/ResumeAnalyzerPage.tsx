@@ -7,7 +7,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
     import.meta.url
   ).toString()
 
-import { useState, ChangeEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { ChangeEvent } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '../lib/firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -83,7 +84,7 @@ export default function ResumeAnalyzerPage() {
 const [analyzing, setAnalyzing] = useState(false)
 const [fileName, setFileName] = useState('')
 const [foundSkills, setFoundSkills] = useState<string[]>([])
-const [resumeText, setResumeText] = useState('')
+const [, setResumeText] = useState('')
 const [analysisResult, setAnalysisResult] = useState<any>(null)
 const [targetRole, setTargetRole] = useState('')
 useEffect(() => {
@@ -295,7 +296,7 @@ let roleY = 135
 
 analysisResult?.recommendedRoles
   ?.slice(0, 5)
-  ?.forEach((role) => {
+  ?.forEach((role: string) => {
     pdf.text(`• ${role}`, 25, roleY)
     roleY += 8
   })
@@ -307,7 +308,7 @@ let y = roleY + 20
 
 analysisResult?.missingSkills
   ?.slice(0, 8)
-  ?.forEach((skill) => {
+  ?.forEach((skill: string) => {
     pdf.text(`• ${skill}`, 25, y)
     y += 8
   })

@@ -19,9 +19,9 @@ const filters = [
 export default function JobsPage() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [search, setSearch] = useState('')
-  const [jobs] = useState([])
+  
 
-  const filtered = jobs
+  
 
   return (
     <PageLayout title="Job Finder">
