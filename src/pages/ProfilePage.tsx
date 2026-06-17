@@ -29,6 +29,11 @@ export default function ProfilePage() {
   branch: '',
   year: '',
   bio: '',
+  location: '',
+  github: '',
+  linkedin: '',
+  portfolio: '',
+  role: '',
 })
 
   useEffect(() => {
@@ -47,11 +52,16 @@ export default function ProfilePage() {
         const data = docSnap.data()
 
         setProfile({
-          college: data.college || '',
-          branch: data.branch || '',
-          year: data.year || '',
-          bio: data.bio || '',
-        })
+  college: data.college || '',
+  branch: data.branch || '',
+  year: data.year || '',
+  bio: data.bio || '',
+  location: data.location || '',
+  github: data.github || '',
+  linkedin: data.linkedin || '',
+  portfolio: data.portfolio || '',
+  role: data.role || '',
+})
       }
     } else {
       setUserData({
@@ -112,14 +122,14 @@ export default function ProfilePage() {
               </div>
 
               <p className="text-text-secondary text-sm mt-1">
-                Career OS User
-              </p>
+  {profile.role || "Add Role"}
+</p>
 
               <div className="flex flex-wrap items-center gap-4 mt-3 text-text-muted text-xs">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  Not Set
-                </span>
+  <MapPin className="w-3 h-3" />
+  {profile.location || "Add Location"}
+</span>
 
                 <span className="flex items-center gap-1">
                   <Mail className="w-3 h-3" />
@@ -127,16 +137,32 @@ export default function ProfilePage() {
                 </span>
 
                 <span className="flex items-center gap-1">
-                  <LinkIcon className="w-3 h-3" />
-                  Coming Soon
-                </span>
+  <LinkIcon className="w-3 h-3" />
+  {profile.github ? (
+    <a
+      href={profile.github}
+      target="_blank"
+      rel="noreferrer"
+      className="text-cyan hover:underline"
+    >
+      GitHub
+    </a>
+  ) : (
+    "Add GitHub"
+  )}
+</span>
               </div>
             </div>
 
             <div className="flex gap-2">
-              <a href="#" className="w-9 h-9 rounded-lg bg-elevated flex items-center justify-center">
-                <Github className="w-4 h-4" />
-              </a>
+              <a
+  href={profile.github || "#"}
+  target="_blank"
+  rel="noreferrer"
+  className="w-9 h-9 rounded-lg bg-elevated flex items-center justify-center"
+>
+  <Github className="w-4 h-4" />
+</a>
 
               <a href="#" className="w-9 h-9 rounded-lg bg-elevated flex items-center justify-center">
                 <Linkedin className="w-4 h-4" />
@@ -157,6 +183,20 @@ export default function ProfilePage() {
           </h3>
 
           <div className="space-y-3">
+            {editing ? (
+  <input
+    value={profile.role}
+    onChange={(e) =>
+      setProfile({ ...profile, role: e.target.value })
+    }
+    placeholder="Role"
+    className="w-full p-2 rounded bg-elevated"
+  />
+) : (
+  <p>
+    <strong>Role:</strong> {profile.role || 'Not Set'}
+  </p>
+)}
             {editing ? (
   <input
     value={profile.college}
@@ -201,6 +241,20 @@ export default function ProfilePage() {
   </p>
 )}
 {editing ? (
+  <input
+    value={profile.location}
+    onChange={(e) =>
+      setProfile({ ...profile, location: e.target.value })
+    }
+    placeholder="Location"
+    className="w-full p-2 rounded bg-elevated"
+  />
+) : (
+  <p>
+    <strong>Location:</strong> {profile.location || 'Not Set'}
+  </p>
+)}
+{editing ? (
   <textarea
     value={profile.bio}
     onChange={(e) =>
@@ -212,6 +266,20 @@ export default function ProfilePage() {
 ) : (
   <p>
     <strong>Bio:</strong> {profile.bio || 'Not Set'}
+  </p>
+)}
+{editing ? (
+  <input
+    value={profile.github}
+    onChange={(e) =>
+      setProfile({ ...profile, github: e.target.value })
+    }
+    placeholder="GitHub URL"
+    className="w-full p-2 rounded bg-elevated"
+  />
+) : (
+  <p>
+    <strong>GitHub:</strong> {profile.github || 'Not Set'}
   </p>
 )}
           </div>

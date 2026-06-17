@@ -26,58 +26,6 @@ import {
   Download,
 } from 'lucide-react'
 
-const analysisSections = [
-  {
-    title: 'ATS Compatibility',
-    score: 82,
-    icon: Target,
-    color: 'text-cyan',
-    bg: 'bg-cyan/10',
-    suggestions: [
-      'Add more keywords from the job description',
-      'Use standard section headings (Experience, Education)',
-      'Avoid tables and graphics that ATS cannot parse',
-    ],
-  },
-  {
-    title: 'Content Quality',
-    score: 75,
-    icon: FileText,
-    color: 'text-blue',
-    bg: 'bg-blue/10',
-    suggestions: [
-      'Quantify achievements with metrics (%, $, numbers)',
-      'Add action verbs to bullet points',
-      'Include a compelling summary statement',
-    ],
-  },
-  {
-    title: 'Formatting',
-    score: 90,
-    icon: Award,
-    color: 'text-violet',
-    bg: 'bg-violet/10',
-    suggestions: [
-      'Consistent font usage throughout',
-      'Proper spacing and margins',
-      'One-page length is ideal for your experience level',
-    ],
-  },
-  {
-    title: 'Keyword Optimization',
-    score: 68,
-    icon: Zap,
-    color: 'text-coral',
-    bg: 'bg-coral/10',
-    suggestions: [
-      'Include more industry-specific technical terms',
-      'Match keywords from target job postings',
-      'Add relevant certifications and tools',
-    ],
-  },
-]
-
-
 
 export default function ResumeAnalyzerPage() {
   const [uploaded, setUploaded] = useState(false)
@@ -87,6 +35,42 @@ const [foundSkills, setFoundSkills] = useState<string[]>([])
 const [, setResumeText] = useState('')
 const [analysisResult, setAnalysisResult] = useState<any>(null)
 const [targetRole, setTargetRole] = useState('')
+
+
+const analysisSections = [
+  {
+    title: 'ATS Compatibility',
+    score: analysisResult?.atsCompatibility || 0,
+    icon: Target,
+    color: 'text-cyan',
+    bg: 'bg-cyan/10',
+    suggestions: analysisResult?.atsTips || [],
+  },
+  {
+    title: 'Content Quality',
+    score: analysisResult?.contentQuality || 0,
+    icon: FileText,
+    color: 'text-blue',
+    bg: 'bg-blue/10',
+    suggestions: analysisResult?.contentTips || [],
+  },
+  {
+    title: 'Formatting',
+    score: analysisResult?.formatting || 0,
+    icon: Award,
+    color: 'text-violet',
+    bg: 'bg-violet/10',
+    suggestions: analysisResult?.formattingTips || [],
+  },
+  {
+    title: 'Keyword Optimization',
+    score: analysisResult?.keywordOptimization || 0,
+    icon: Zap,
+    color: 'text-coral',
+    bg: 'bg-coral/10',
+    suggestions: analysisResult?.keywordTips || [],
+  },
+]
 useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (!user) return
@@ -190,6 +174,10 @@ const parsedResult = JSON.parse(cleanResult)
 console.log("PARSED RESULT:", parsedResult)
 
 setAnalysisResult(parsedResult)
+console.log("ATS Compatibility:", parsedResult.atsCompatibility)
+console.log("Content Quality:", parsedResult.contentQuality)
+console.log("Formatting:", parsedResult.formatting)
+console.log("Keyword Optimization:", parsedResult.keywordOptimization)
 const sampleSkills = [
   'JavaScript',
   'React',
@@ -212,22 +200,33 @@ const detectedSkills = sampleSkills.filter((skill) =>
 )
 
 setFoundSkills(detectedSkills)
-  
-  
-  const user = auth.currentUser
+
+const user = auth.currentUser
 
 if (user) {
   await setDoc(
     doc(db, 'resumeAnalysis', user.uid),
     {
       fileName: file.name,
+
       atsScore: parsedResult.atsScore,
-       roleMatch: parsedResult.roleMatch,
+      roleMatch: parsedResult.roleMatch,
+
+      atsCompatibility: parsedResult.atsCompatibility || 0,
+      contentQuality: parsedResult.contentQuality || 0,
+      formatting: parsedResult.formatting || 0,
+      keywordOptimization: parsedResult.keywordOptimization || 0,
+
+      atsTips: parsedResult.atsTips || [],
+      contentTips: parsedResult.contentTips || [],
+      formattingTips: parsedResult.formattingTips || [],
+      keywordTips: parsedResult.keywordTips || [],
 
       recommendedRoles: parsedResult.recommendedRoles || [],
       missingSkills: parsedResult.missingSkills || [],
       strengths: parsedResult.strengths || [],
       weaknesses: parsedResult.weaknesses || [],
+
       foundSkills: detectedSkills,
       updatedAt: new Date().toISOString(),
     },
@@ -237,8 +236,6 @@ if (user) {
 } catch (err) {
   console.error("JSON Parse Error:", err)
 }
-
-  
   setFileName(file.name)
   setUploaded(true)
   setAnalyzing(true)

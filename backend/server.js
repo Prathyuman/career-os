@@ -6,11 +6,11 @@ const multer = require("multer");
 const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
-console.log("API KEY:", process.env.GEMINI_API_KEY);
+
 const ai = new GoogleGenAI({
 apiKey: process.env.GEMINI_API_KEY,
 });
-
+console.log("KEY:", process.env.GEMINI_API_KEY?.slice(0, 10));
 app.use(cors());
 app.use(express.json());
 
@@ -49,18 +49,39 @@ app.post("/analyze-resume", async (req, res) => {
         error: "Resume text is required",
       });
     }
-
-    const prompt = `
+console.log("Resume Length:", resumeText.length);
+   const prompt = `
 Analyze the following resume for the target role: ${targetRole}
 
 Resume:
-${resumeText}
+${resumeText.substring(0, 2000)}
 
-Return ONLY valid JSON in this format:
+Rules:
+- ATS Score should reflect overall resume quality.
+- Role Match should reflect how well the resume matches the target role.
+- First-year students should not be heavily penalized for lack of industry experience.
+- ATS Score should be realistic for student resumes.
+- ATS Score and Role Match are different metrics.
+- Evaluate ATS Compatibility, Content Quality, Formatting, and Keyword Optimization separately.
+- For each category, provide a score from 0-100.
+- Provide 3 actionable improvement tips for each category.
+- Return ONLY valid JSON.
+- Do not include markdown, explanations, or code blocks.
 
 {
   "atsScore": 0,
   "roleMatch": 0,
+
+  "atsCompatibility": 0,
+  "contentQuality": 0,
+  "formatting": 0,
+  "keywordOptimization": 0,
+
+  "atsTips": [],
+  "contentTips": [],
+  "formattingTips": [],
+  "keywordTips": [],
+
   "strengths": [],
   "weaknesses": [],
   "missingSkills": [],
@@ -70,11 +91,10 @@ Return ONLY valid JSON in this format:
   "learningRoadmap": []
 }
 `;
-
     console.log("✅ Prompt ready");
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 

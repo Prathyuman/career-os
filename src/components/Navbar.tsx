@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X, Zap } from 'lucide-react'
-
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../lib/firebase'
 const navLinks = [
   { label: 'Features', href: '/#features' },
   { label: 'Simulator', href: '/#simulator' },
@@ -19,6 +20,15 @@ const appLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [photoURL, setPhotoURL] = useState('')
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setPhotoURL(user?.photoURL || '')
+  })
+
+  return () => unsubscribe()
+}, [])
   const location = useLocation()
   const isHome = location.pathname === '/'
   const isAppPage = location.pathname !== '/' && !['/login', '/signup', '/forgot-password'].includes(location.pathname)
@@ -64,9 +74,23 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link to="/profile" className="w-8 h-8 rounded-full bg-surface border border-border-subtle flex items-center justify-center hover:border-cyan/30 transition-colors">
-                  <span className="text-xs font-semibold text-cyan">JD</span>
-                </Link>
+                <Link
+  to="/profile"
+  className="w-8 h-8 rounded-full overflow-hidden bg-surface border border-border-subtle hover:border-cyan/30 transition-colors"
+>
+  {photoURL ? (
+    <img
+      src={photoURL}
+      alt="Profile"
+      className="w-full h-full object-cover"
+      referrerPolicy="no-referrer"
+    />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-cyan">
+      U
+    </div>
+  )}
+</Link>
                 <Link
                   to="/settings"
                   className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
