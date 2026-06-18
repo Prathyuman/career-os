@@ -1,84 +1,44 @@
-import { useState } from 'react'
-import PageLayout from '../components/PageLayout'
-import ScrollReveal from '../components/ScrollReveal'
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth, db } from "../lib/firebase";
+
+import PageLayout from "../components/PageLayout";
+import ScrollReveal from "../components/ScrollReveal";
+
 import {
   Target,
-  BookOpen,
   AlertTriangle,
   CheckCircle,
   Zap,
-  ArrowRight,
-} from 'lucide-react'
-
-const currentSkills = [
-  { name: 'JavaScript', level: 90 },
-  { name: 'React', level: 85 },
-  { name: 'HTML/CSS', level: 88 },
-  { name: 'Git', level: 80 },
-  { name: 'Node.js', level: 65 },
-  { name: 'TypeScript', level: 60 },
-  { name: 'SQL', level: 55 },
-]
-
-const targetSkills = [
-  { name: 'System Design', required: 80, current: 45 },
-  { name: 'Kubernetes', required: 75, current: 20 },
-  { name: 'AWS/GCP', required: 70, current: 35 },
-  { name: 'GraphQL', required: 65, current: 40 },
-  { name: 'CI/CD', required: 70, current: 30 },
-  { name: 'Microservices', required: 75, current: 25 },
-  { name: 'Docker', required: 70, current: 50 },
-]
-
-const recommendations = [
-  { title: 'System Design Primer', type: 'Course', duration: '8 weeks', icon: BookOpen },
-  { title: 'AWS Solutions Architect', type: 'Certification', duration: '3 months', icon: Target },
-  { title: 'Docker & Kubernetes Mastery', type: 'Course', duration: '6 weeks', icon: BookOpen },
-  { title: 'GraphQL Fundamentals', type: 'Course', duration: '4 weeks', icon: BookOpen },
-]
+} from "lucide-react";
 
 // TODO: Tomorrow replace hardcoded skills with Resume Analyzer + Gemini API
 
 export default function SkillGapPage() {
-  const [selectedRole, setSelectedRole] = useState('Full Stack Developer')
+
+  const [skillData, setSkillData] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const docRef = doc(db, "resumeAnalysis", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setSkillData(docSnap.data());
+        console.log("Skill Gap Data:", docSnap.data());
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <PageLayout title="Skill Gap Analysis">
-
-      {/* Role Selection */}
-      <ScrollReveal>
-        <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
-          <h3 className="font-display font-semibold text-text-primary mb-4">
-            Target Career Role
-          </h3>
-
-          <div className="flex flex-col md:flex-row gap-3">
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="flex-1 p-3 rounded-lg bg-elevated border border-border-subtle text-text-primary"
-            >
-              <option>Frontend Developer</option>
-              <option>Backend Developer</option>
-              <option>Full Stack Developer</option>
-              <option>Data Analyst</option>
-              <option>Data Scientist</option>
-              <option>AI Engineer</option>
-              <option>DevOps Engineer</option>
-              <option>Mobile App Developer</option>
-            </select>
-
-            <button className="px-6 py-3 rounded-lg bg-cyan text-black font-medium hover:opacity-90 transition">
-              Analyze Skills
-            </button>
-          </div>
-
-          <p className="text-text-muted text-sm mt-3">
-            Selected Role: {selectedRole}
-          </p>
-        </div>
-      </ScrollReveal>
-
+      
       {/* Overview */}
       <ScrollReveal>
         <div className="bg-surface rounded-lg border border-border-subtle p-6 mb-6">
@@ -89,12 +49,12 @@ export default function SkillGapPage() {
 
             <div>
               <h3 className="font-display font-semibold text-text-primary">
-                7 Skill Gaps Identified
-              </h3>
+  Skill Gap Analysis
+</h3>
 
               <p className="text-text-secondary text-sm mt-0.5">
-                Based on your target role ({selectedRole}), we've identified key areas for improvement.
-              </p>
+  AI-generated skill gap report based on your uploaded resume.
+</p>
             </div>
           </div>
         </div>
@@ -110,23 +70,16 @@ export default function SkillGapPage() {
               Current Skills
             </h3>
 
-            <div className="space-y-3">
-              {currentSkills.map((skill) => (
-                <div key={skill.name}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-text-primary">{skill.name}</span>
-                    <span className="text-cyan">{skill.level}%</span>
-                  </div>
-
-                  <div className="h-2 bg-elevated rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-cyan rounded-full transition-all"
-                      style={{ width: `${skill.level}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="flex flex-wrap gap-2">
+  {skillData?.currentSkills?.map((skill: string) => (
+    <div
+      key={skill}
+      className="px-3 py-2 rounded-md bg-cyan/10 text-cyan"
+    >
+      {skill}
+    </div>
+  ))}
+</div>
           </div>
         </ScrollReveal>
 
@@ -138,30 +91,17 @@ export default function SkillGapPage() {
               Skills to Develop
             </h3>
 
-            <div className="space-y-3">
-              {targetSkills.map((skill) => (
-                <div key={skill.name}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-text-primary">{skill.name}</span>
-                    <span className="text-text-muted">
-                      {skill.current}% / {skill.required}%
-                    </span>
-                  </div>
+            <div className="flex flex-wrap gap-2">
 
-                  <div className="h-2 bg-elevated rounded-full overflow-hidden relative">
-                    <div
-                      className="h-full bg-coral/30 rounded-full"
-                      style={{ width: `${skill.required}%` }}
-                    />
-
-                    <div
-                      className="h-full bg-cyan rounded-full absolute top-0 left-0"
-                      style={{ width: `${skill.current}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+  {skillData?.missingSkills?.map((skill: string) => (
+    <div
+      key={skill}
+      className="px-3 py-2 rounded-md bg-coral/10 text-coral"
+    >
+      {skill}
+    </div>
+  ))}
+</div>
           </div>
         </ScrollReveal>
       </div>
@@ -174,33 +114,56 @@ export default function SkillGapPage() {
             Recommended Learning
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {recommendations.map((rec) => (
-              <div
-                key={rec.title}
-                className="flex items-start gap-3 p-4 bg-elevated rounded-md hover:border-cyan/20 border border-transparent transition-colors cursor-pointer group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-cyan/10 flex items-center justify-center flex-shrink-0">
-                  <rec.icon className="w-5 h-5 text-cyan" />
-                </div>
-
-                <div className="flex-1">
-                  <div className="text-text-primary text-sm font-medium group-hover:text-cyan transition-colors">
-                    {rec.title}
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-text-muted text-xs">{rec.type}</span>
-                    <span className="text-text-muted text-xs">{rec.duration}</span>
-                  </div>
-                </div>
-
-                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-cyan group-hover:translate-x-1 transition-all flex-shrink-0" />
-              </div>
-            ))}
+          <div className="space-y-3">
+  {skillData?.recommendedCourses?.length > 0 ? (
+    skillData.recommendedCourses.map((course: string) => (
+      <div
+        key={course}
+        className="p-3 rounded-md bg-elevated"
+      >
+        {course}
+      </div>
+    ))
+  ) : (
+    <div className="text-text-muted">
+      No course recommendations available.
+    </div>
+  )}
+</div>
           </div>
-        </div>
+        
       </ScrollReveal>
+      {/* Learning Roadmap */}
+<ScrollReveal>
+  <div className="bg-surface rounded-lg border border-border-subtle p-6 mt-6">
+    <h3 className="font-display font-semibold text-text-primary mb-4">
+      Learning Roadmap
+    </h3>
+
+    <div className="space-y-3">
+  {skillData?.learningRoadmap?.length > 0 ? (
+  skillData.learningRoadmap.map(
+    (step: string, index: number) => (
+      <div
+        key={step}
+        className="p-3 rounded-md bg-elevated"
+      >
+        <div className="text-cyan font-semibold mb-1">
+          Phase {index + 1}
+        </div>
+
+        <div>{step}</div>
+      </div>
+    )
+  )
+) : (
+  <div className="text-text-muted">
+    No roadmap available.
+  </div>
+)}
+</div>
+  </div>
+</ScrollReveal>
     </PageLayout>
   )
 }

@@ -164,12 +164,28 @@ try {
     return
   }
 
-  const cleanResult = analysisData.result
+ const cleanResult = analysisData.result
   .replace(/```json/g, "")
   .replace(/```/g, "")
   .trim()
 
 const parsedResult = JSON.parse(cleanResult)
+
+console.log("PARSED RESULT:", parsedResult)
+console.log(
+  "Career Readiness Score:",
+  parsedResult.careerReadinessScore
+)
+
+// ATS Score Calculation
+const atsScore =
+  (parsedResult.resumeStructure || 0) +
+  (parsedResult.skillsMatch || 0) +
+  (parsedResult.keywordOptimizationScore || 0) +
+  (parsedResult.projectsScore || 0) +
+  (parsedResult.educationScore || 0)
+
+parsedResult.atsScore = atsScore
 
 console.log("PARSED RESULT:", parsedResult)
 
@@ -223,12 +239,28 @@ if (user) {
       keywordTips: parsedResult.keywordTips || [],
 
       recommendedRoles: parsedResult.recommendedRoles || [],
-      missingSkills: parsedResult.missingSkills || [],
-      strengths: parsedResult.strengths || [],
-      weaknesses: parsedResult.weaknesses || [],
+missingSkills: parsedResult.missingSkills || [],
 
-      foundSkills: detectedSkills,
-      updatedAt: new Date().toISOString(),
+recommendedCourses:
+  parsedResult.recommendedCourses || [],
+
+learningRoadmap:
+  parsedResult.learningRoadmap || [],
+
+careerReadinessScore:
+  parsedResult.careerReadinessScore || 0,
+
+areasToFocus:
+  parsedResult.areasToFocus || [],
+
+strengths: parsedResult.strengths || [],
+weaknesses: parsedResult.weaknesses || [],
+
+foundSkills: detectedSkills,
+
+currentSkills: detectedSkills,
+
+updatedAt: new Date().toISOString(),
     },
     { merge: true }
   )
