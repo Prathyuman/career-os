@@ -292,6 +292,188 @@ Return ONLY valid JSON.
     });
   }
 });
+
+
+app.post("/analyze-github", async (req, res) => {
+
+  let githubScore = 0;
+
+  try {
+    console.log("🔥 GitHub Analyze route hit");
+
+    const { profile, repos } = req.body;
+
+    if (!profile || !repos) {
+      return res.status(400).json({
+        success: false,
+        error: "Profile and repositories are required",
+      });
+    }
+
+    // Repository Count
+    if (profile.public_repos >= 10) githubScore += 20;
+    else if (profile.public_repos >= 5) githubScore += 15;
+    else githubScore += 10;
+
+    // Followers
+    if (profile.followers >= 50) githubScore += 15;
+    else if (profile.followers >= 10) githubScore += 10;
+    else githubScore += 5;
+// Technology Diversity
+const languages = [
+  ...new Set(
+    repos
+      .map(repo => repo.language)
+      .filter(Boolean)
+  )
+];
+
+githubScore += Math.min(languages.length * 5, 25);
+
+// Documentation Quality
+const documentedRepos = repos.filter(
+  repo => repo.description
+).length;
+
+githubScore += Math.min(documentedRepos * 2, 20);
+
+// Activity
+if (repos.length >= 5) githubScore += 20;
+else githubScore += 10;
+
+// Final Limit
+githubScore = Math.min(githubScore, 100);
+
+console.log("GitHub Score:", githubScore);
+    const prompt = `
+You are an expert software engineering career coach.
+
+Analyze this GitHub profile.
+
+Profile:
+${JSON.stringify(profile)}
+
+Repositories:
+${JSON.stringify(repos.slice(0, 10))}
+IMPORTANT:
+
+- Keep all strengths under 20 words.
+- Keep all weaknesses under 20 words.
+- Keep recommended projects under 25 words.
+- Return exactly 5 strengths.
+- Return exactly 5 weaknesses.
+- Return exactly 5 missing technologies.
+- Return exactly 5 recommended projects.
+- Use short bullet-style responses.
+Use this pre-calculated GitHub Score: ${githubScore}
+
+IMPORTANT:
+- Do NOT generate githubScore.
+- Only analyze strengths, weaknesses,
+  missing technologies and recommended projects.
+- Keep responses short.
+- Return exactly 5 strengths.
+- Return exactly 5 weaknesses.
+- Return exactly 5 missing technologies.
+- Return exactly 5 recommended projects.
+
+Return ONLY valid JSON.
+
+{
+  "strengths": [],
+  "weaknesses": [],
+  "missingTechnologies": [],
+  "recommendedProjects": []
+}
+`;
+
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    let text =
+      result?.text ||
+      result?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "";
+
+    text = text.replace(/```json/g, "");
+    text = text.replace(/```/g, "").trim();
+
+    console.log("Final AI Response:", text);
+
+try {
+  const parsedResult = JSON.parse(text);
+
+  // Add backend calculated score
+  parsedResult.githubScore = githubScore;
+
+  return res.json(parsedResult);
+
+} catch (parseError) {
+
+  console.log("JSON Parse Error:", parseError);
+
+  return res.json({
+    githubScore: githubScore,
+    strengths: [
+      "Maintains public repositories",
+      "Shows coding activity",
+      "Uses GitHub regularly",
+      "Demonstrates coding skills",
+      "Active GitHub presence"
+    ],
+    weaknesses: [
+      "Needs more advanced projects",
+      "Portfolio needs diversification",
+      "Needs better documentation",
+      "Needs more real-world applications",
+      "Needs testing and DevOps skills"
+    ],
+    missingTechnologies: [
+      "Docker",
+      "CI/CD",
+      "Testing",
+      "Cloud Computing",
+      "System Design"
+    ],
+    recommendedProjects: [
+      "Build a Full Stack MERN Application",
+      "Create a DevOps project using Docker",
+      "Develop an AI-based application",
+      "Build a Cloud deployment project",
+      "Create a scalable backend API"
+    ]
+  });
+}
+  } catch (error) {
+    console.error("❌ GitHub Error:", error);
+
+    res.json({
+  githubScore: githubScore,
+      strengths: [
+        "Maintains public repositories",
+        "Shows coding activity",
+        "Uses GitHub regularly"
+      ],
+      weaknesses: [
+        "Need more advanced projects",
+        "Portfolio needs diversification",
+        "Need more real-world applications"
+      ],
+      missingTechnologies: [
+        "Docker",
+        "CI/CD",
+        "Testing"
+      ],
+      recommendedProjects: [
+        "Build a Full Stack MERN Application",
+        "Create a DevOps project using Docker",
+        "Develop an AI-based application"
+      ]
+    });
+  }
+});
 app.listen(5000, () => {
-console.log("Server running on port 5000");
+  console.log("Server running on port 5000");
 });
