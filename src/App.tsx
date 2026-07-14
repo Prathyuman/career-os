@@ -17,6 +17,7 @@ import CoursesPage from './pages/CoursesPage'
 import CertificationsPage from './pages/CertificationsPage'
 import ProjectsPage from './pages/ProjectsPage'
 import InternshipsPage from './pages/InternshipsPage'
+import SavedInternshipsPage from './pages/SavedInternshipsPage'
 import JobsPage from './pages/JobsPage'
 import InterviewPage from './pages/InterviewPage'
 import ProgressPage from './pages/ProgressPage'
@@ -63,6 +64,14 @@ function App() {
         <Route path="/certifications" element={<AppLayout showNav={true} showFooter={false}><CertificationsPage /></AppLayout>} />
         <Route path="/projects" element={<AppLayout showNav={true} showFooter={false}><ProjectsPage /></AppLayout>} />
         <Route path="/internships" element={<AppLayout showNav={true} showFooter={false}><InternshipsPage /></AppLayout>} />
+        <Route
+  path="/saved-internships"
+  element={
+    <AppLayout showNav={true} showFooter={false}>
+      <SavedInternshipsPage />
+    </AppLayout>
+  }
+/>
         <Route path="/jobs" element={<AppLayout showNav={true} showFooter={false}><JobsPage /></AppLayout>} />
         <Route path="/interview" element={<AppLayout showNav={true} showFooter={false}><InterviewPage /></AppLayout>} />
         <Route path="/progress" element={<AppLayout showNav={true} showFooter={false}><ProgressPage /></AppLayout>} />

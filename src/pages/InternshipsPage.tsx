@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PageLayout from '../components/PageLayout'
 import ScrollReveal from '../components/ScrollReveal'
 import {
@@ -8,7 +8,17 @@ import {
   IndianRupee,
   Bookmark,
 } from 'lucide-react'
-
+import { auth, db } from '../lib/firebase'
+import { fetchInternships } from '../services/internshipService'
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+  doc,
+} from 'firebase/firestore'
 const filters = [
   'All',
   'Software Engineering',
@@ -74,9 +84,55 @@ const internships = [
 export default function InternshipsPage() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [search, setSearch] = useState('')
-
+const [apiInternships, setApiInternships] =
+  useState<any[]>([])
   const [savedInternships, setSavedInternships] =
   useState<string[]>([])
+  const fetchSavedInternships = async (
+  user: any
+) => {
+
+  const q = query(
+    collection(db, 'savedInternships'),
+    where('userId', '==', user.uid)
+  )
+
+  const snapshot = await getDocs(q)
+
+  const roles = snapshot.docs.map(
+    (document) => document.data().role
+  )
+
+  setSavedInternships(roles)
+}
+
+useEffect(() => {
+  const unsubscribe = auth.onAuthStateChanged(
+    (user) => {
+      if (user) {
+        fetchSavedInternships(user)
+      }
+    }
+  )
+
+  return () => unsubscribe()
+}, [])
+useEffect(() => {
+  console.log('API useEffect running')
+
+  const loadInternships = async () => {
+    console.log('Calling RapidAPI...')
+
+    const data = await fetchInternships()
+
+    console.log('RapidAPI Data:', data)
+
+    setApiInternships(data)
+  }
+
+  loadInternships()
+}, [])
+console.log('Saved internships state:', savedInternships)
 const userSkills = [
   'React',
   'JavaScript',
@@ -99,17 +155,62 @@ const getMissingSkills = (requiredSkills: string[]) => {
     (skill) => !userSkills.includes(skill)
   )
 }
-const toggleBookmark = (internshipName: string) => {
-  if (savedInternships.includes(internshipName)) {
+const toggleBookmark = async (
+  internship: any
+) => {
+  const user = auth.currentUser
+
+  if (!user) return
+
+  const alreadySaved =
+    savedInternships.includes(
+      internship.role
+    )
+
+  if (alreadySaved) {
+    const q = query(
+      collection(db, 'savedInternships'),
+      where('userId', '==', user.uid),
+      where(
+        'role',
+        '==',
+        internship.role
+      )
+    )
+
+    const snapshot = await getDocs(q)
+
+    for (const document of snapshot.docs) {
+      await deleteDoc(
+        doc(
+          db,
+          'savedInternships',
+          document.id
+        )
+      )
+    }
+
     setSavedInternships(
       savedInternships.filter(
-        (item) => item !== internshipName
+        (item) =>
+          item !== internship.role
       )
     )
   } else {
+    await addDoc(
+      collection(
+        db,
+        'savedInternships'
+      ),
+      {
+        userId: user.uid,
+        ...internship,
+      }
+    )
+
     setSavedInternships([
       ...savedInternships,
-      internshipName,
+      internship.role,
     ])
   }
 }
@@ -199,7 +300,7 @@ const missingSkills = getMissingSkills(
 
   <div className="flex items-center gap-3">
     <button
-      onClick={() => toggleBookmark(internship.role)}
+     onClick={() => toggleBookmark(internship)}
     >
       <Bookmark
         className={`w-5 h-5 transition-all ${

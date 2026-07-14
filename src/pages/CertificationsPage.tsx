@@ -91,12 +91,7 @@ console.log("Resource Type:", uploadResult.resource_type);
 console.log("Format:", uploadResult.format);
 console.log("Secure URL:", uploadResult.secure_url);
 
-    const fileURL =
-  uploadResult.resource_type === 'raw'
-    ? `https://res.cloudinary.com/${
-        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-      }/raw/upload/${uploadResult.public_id}.${uploadResult.format}`
-    : uploadResult.secure_url
+const fileURL = uploadResult.secure_url
 
     // Save certificate details in Firestore
     await addDoc(collection(db, "certifications"), {
@@ -226,10 +221,11 @@ console.log("Secure URL:", uploadResult.secure_url);
                   <div className="flex flex-col gap-3 mt-4">
   <a
   href={cert.fileURL}
-  download
+  target="_blank"
+  rel="noopener noreferrer"
   className="text-cyan hover:underline"
 >
-  Download Certificate
+  View Certificate
 </a>
 
   <button
