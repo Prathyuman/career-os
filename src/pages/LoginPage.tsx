@@ -22,10 +22,13 @@ export default function LoginPage() {
       alert(`Welcome ${user?.displayName}`)
 
       navigate('/dashboard')
-    } catch (error) {
-      console.error(error)
-      alert('Google Login Failed')
-    }
+    } catch (error: any) {
+  console.error(error)
+
+  alert(
+    `Google Login Failed\n\nCode: ${error.code}\nMessage: ${error.message}`
+  )
+}
   }
 
   return (

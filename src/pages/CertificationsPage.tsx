@@ -3,8 +3,8 @@ import PageLayout from '../components/PageLayout'
 import ScrollReveal from '../components/ScrollReveal'
 import { Award, Upload, FileText } from 'lucide-react'
 
-import { auth, db, storage } from '../lib/firebase'
-
+import { auth, db } from '../lib/firebase'
+import { uploadCertificate as uploadToCloudinary } from '../lib/cloudinary'
 import {
   collection,
   addDoc,
@@ -12,13 +12,11 @@ import {
   where,
   getDocs,
   serverTimestamp,
+  deleteDoc,
+  doc,
 } from 'firebase/firestore'
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from 'firebase/storage'
+
 
 export default function CertificationsPage() {
   const [certificateName, setCertificateName] = useState('')
@@ -55,6 +53,24 @@ export default function CertificationsPage() {
     }
   }
 
+const deleteCertificate = async (id: string) => {
+  try {
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this certificate?'
+    )
+
+    if (!confirmDelete) return
+
+    await deleteDoc(doc(db, 'certifications', id))
+
+    alert('Certificate deleted successfully!')
+
+    fetchCertificates()
+  } catch (error) {
+    console.error(error)
+    alert('Failed to delete certificate')
+  }
+}
   const uploadCertificate = async () => {
     try {
       if (!certificateName || !selectedFile) {
@@ -68,36 +84,45 @@ export default function CertificationsPage() {
 
       setUploading(true)
 
-      const storageRef = ref(
-        storage,
-        `certificates/${user.uid}/${Date.now()}_${selectedFile.name}`
-      )
 
-      await uploadBytes(storageRef, selectedFile)
+    // Upload to Cloudinary
+    const uploadResult = await uploadToCloudinary(selectedFile);
+console.log("Resource Type:", uploadResult.resource_type);
+console.log("Format:", uploadResult.format);
+console.log("Secure URL:", uploadResult.secure_url);
 
-      const fileURL = await getDownloadURL(storageRef)
+    const fileURL =
+  uploadResult.resource_type === 'raw'
+    ? `https://res.cloudinary.com/${
+        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+      }/raw/upload/${uploadResult.public_id}.${uploadResult.format}`
+    : uploadResult.secure_url
 
-      await addDoc(collection(db, 'certifications'), {
-        userId: user.uid,
-        certificateName,
-        fileURL,
-        uploadedAt: serverTimestamp(),
-      })
+    // Save certificate details in Firestore
+    await addDoc(collection(db, "certifications"), {
+      userId: user.uid,
+      certificateName,
+      fileURL,
+      publicId: uploadResult.public_id,
+      fileType: uploadResult.resource_type,
+      format: uploadResult.format,
+      uploadedAt: serverTimestamp(),
+    });
 
-      alert('Certificate uploaded successfully!')
+    alert("Certificate uploaded successfully!");
 
-      setCertificateName('')
-      setSelectedFile(null)
+    setCertificateName("");
+    setSelectedFile(null);
 
-      fetchCertificates()
-    } catch (error) {
-      console.log(error)
-      alert('Upload failed')
-    } finally {
-      setUploading(false)
-    }
+   await fetchCertificates();
+  } catch (error) {
+    console.error(error);
+    alert("Upload failed");
+  } finally {
+    setUploading(false);
   }
-
+};
+      
   return (
     <PageLayout title="Certification Tracker">
       {/* Upload Section */}
@@ -198,14 +223,22 @@ export default function CertificationsPage() {
                     {cert.certificateName}
                   </h3>
 
-                  <a
-                    href={cert.fileURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan hover:underline"
-                  >
-                    View Certificate
-                  </a>
+                  <div className="flex flex-col gap-3 mt-4">
+  <a
+  href={cert.fileURL}
+  download
+  className="text-cyan hover:underline"
+>
+  Download Certificate
+</a>
+
+  <button
+    onClick={() => deleteCertificate(cert.id)}
+    className="bg-red-500 text-white py-2 rounded-md hover:opacity-90 transition-all"
+  >
+    Delete Certificate
+  </button>
+</div>
                 </div>
               ))}
             </div>
