@@ -1,25 +1,42 @@
-const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY
+import { fetchJSearchInternships } from "./jsearch"
+import { fetchAdzunaInternships } from "./adzuna"
+import { fetchRemotiveInternships } from "./remotive"
+import { fetchMuseInternships } from "./muse"
 
-export const fetchInternships = async () => {
+export const getInternships = async () => {
   try {
-    const response = await fetch(
-      'https://jsearch.p.rapidapi.com/search?query=frontend%20developer%20intern%20in%20india&page=1&num_pages=1',
-      {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-key': API_KEY,
-          'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-        },
-      }
-    )
+    const data = await fetchJSearchInternships()
 
-    const data = await response.json()
-
-   console.log('API RESPONSE FROM RAPID API:', data)
-
-    return data.data || []
+    if (data.length > 0) {
+      console.log("Using JSearch API")
+      return data
+    }
   } catch (error) {
-    console.log(error)
-    return []
+    console.log("JSearch Failed:", error)
   }
+
+  try {
+    const data = await fetchAdzunaInternships()
+
+    if (data.length > 0) {
+      console.log("Using Adzuna API")
+      return data
+    }
+  } catch (error) {
+    console.log("Adzuna Failed:", error)
+  }
+
+  try {
+    const data = await fetchRemotiveInternships()
+
+    if (data.length > 0) {
+      console.log("Using Remotive API")
+      return data
+    }
+  } catch (error) {
+    console.log("Remotive Failed:", error)
+  }
+
+  console.log("Using Muse API")
+  return await fetchMuseInternships()
 }

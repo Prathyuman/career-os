@@ -126,8 +126,9 @@ useEffect(() => {
     const data = await fetchInternships()
 
     console.log('RapidAPI Data:', data)
-
+console.log("API Internship Count:", data.length)
     setApiInternships(data)
+    console.log(data)
   }
 
   loadInternships()
@@ -141,6 +142,10 @@ const userSkills = [
 ] 
 
 const calculateMatchScore = (requiredSkills: string[]) => {
+  if (!requiredSkills || requiredSkills.length === 0) {
+    return 0
+  }
+
   const matchedSkills = requiredSkills.filter((skill) =>
     userSkills.includes(skill)
   )
@@ -214,22 +219,9 @@ const toggleBookmark = async (
     ])
   }
 }
-  const filteredInternships = internships.filter((internship) => {
-    const matchesFilter =
-      activeFilter === 'All' ||
-      internship.category === activeFilter
-
-    const matchesSearch =
-      internship.role
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      internship.company
-        .toLowerCase()
-        .includes(search.toLowerCase())
-
-    return matchesFilter && matchesSearch
-  })
-
+console.log("Active Filter:", activeFilter)
+console.log("API Internships:", apiInternships)
+const filteredInternships = apiInternships
   return (
     <PageLayout title="Internship Finder">
       {/* Search Section */}
@@ -284,11 +276,11 @@ const toggleBookmark = async (
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredInternships.map((internship, index) => {
-  const matchScore = calculateMatchScore(
-    internship.skills
-  )
+ const matchScore = calculateMatchScore(
+  internship.skills || []
+)
 const missingSkills = getMissingSkills(
-  internship.skills
+  internship.skills || []
 )
   return (
               <div
@@ -361,7 +353,7 @@ const missingSkills = getMissingSkills(
 </div>
 
 <div className="mt-4 flex flex-wrap gap-2">
-  {internship.skills.map((skill, skillIndex) => (
+  {(internship.skills || []).map((skill, skillIndex) => (
     <span
       key={skillIndex}
       className={`px-2 py-1 rounded-full text-xs ${
@@ -392,9 +384,14 @@ const missingSkills = getMissingSkills(
     </div>
   </div>
 )}
-<button className="w-full mt-6 bg-cyan text-deep py-2.5 rounded-md font-semibold hover:opacity-90 transition-all">
+<a
+  href={internship.applyLink}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="block w-full mt-6 bg-cyan text-deep py-2.5 rounded-md font-semibold text-center hover:opacity-90 transition-all"
+>
   Apply Now
-</button>
+</a>
               </div>
   )
 })}

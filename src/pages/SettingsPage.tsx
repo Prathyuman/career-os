@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageLayout from '../components/PageLayout'
 import ScrollReveal from '../components/ScrollReveal'
 import {
-  User,
   Bell,
   Shield,
   Palette,
@@ -19,13 +18,43 @@ export default function SettingsPage() {
     weeklyDigest: true,
   })
 
-  const toggleNotification = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }))
+  const [theme, setTheme] = useState(
+    localStorage.getItem('theme') || 'dark'
+  )
+
+  const [saved, setSaved] = useState(false)
+
+  const toggleNotification = (
+    key: keyof typeof notifications
+  ) => {
+    setNotifications((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
+
+  useEffect(() => {
+    document.documentElement.classList.remove('light')
+
+    if (theme === 'light') {
+      document.documentElement.classList.add('light')
+    }
+
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const handleSave = () => {
+    setSaved(true)
+
+    setTimeout(() => {
+      setSaved(false)
+    }, 2000)
   }
 
   return (
     <PageLayout title="Settings">
-            {/* Notifications */}
+
+      {/* Notifications */}
       <ScrollReveal className="mb-6">
         <div className="bg-surface rounded-lg border border-border-subtle p-6">
           <h3 className="font-display font-semibold text-text-primary mb-4 flex items-center gap-2">
@@ -45,7 +74,9 @@ export default function SettingsPage() {
 
                 <button
                   onClick={() =>
-                    toggleNotification(key as keyof typeof notifications)
+                    toggleNotification(
+                      key as keyof typeof notifications
+                    )
                   }
                   className={value ? 'text-cyan' : 'text-text-muted'}
                 >
@@ -69,10 +100,36 @@ export default function SettingsPage() {
             Preferences
           </h3>
 
-          <p className="text-text-secondary text-sm">
-            Theme, language, and personalization settings will be available
-            after backend integration.
-          </p>
+          <div className="space-y-4">
+            <div>
+              <label className="text-text-primary text-sm block mb-2">
+                Theme
+              </label>
+
+              <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                className="w-full bg-background border border-border-subtle rounded-lg px-4 py-3 text-text-primary outline-none"
+              >
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-text-primary text-sm block mb-2">
+                Language
+              </label>
+
+              <select
+                className="w-full bg-background border border-border-subtle rounded-lg px-4 py-3 text-text-primary outline-none"
+              >
+                <option>English</option>
+                <option>Tamil</option>
+                <option>Hindi</option>
+              </select>
+            </div>
+          </div>
         </div>
       </ScrollReveal>
 
@@ -90,7 +147,7 @@ export default function SettingsPage() {
                 Two-Factor Authentication
               </div>
               <div className="text-text-muted text-xs">
-                Coming soon
+                Coming Soon
               </div>
             </div>
 
@@ -99,7 +156,7 @@ export default function SettingsPage() {
                 Password Management
               </div>
               <div className="text-text-muted text-xs">
-                Coming soon
+                Coming Soon
               </div>
             </div>
 
@@ -107,8 +164,13 @@ export default function SettingsPage() {
               <div className="text-text-primary text-sm">
                 Connected Accounts
               </div>
+
+              <div className="text-text-muted text-xs mt-1">
+                GitHub Connected ✅
+              </div>
+
               <div className="text-text-muted text-xs">
-                No connected accounts
+                LinkedIn Integration Coming Soon
               </div>
             </div>
           </div>
@@ -117,13 +179,23 @@ export default function SettingsPage() {
 
       {/* Save */}
       <ScrollReveal>
-        <div className="flex justify-end">
-          <button className="px-6 py-2.5 rounded-pill bg-cyan text-deep font-semibold text-sm flex items-center gap-2">
+        <div className="flex flex-col items-end">
+          <button
+            onClick={handleSave}
+            className="px-6 py-2.5 rounded-pill bg-cyan text-deep font-semibold text-sm flex items-center gap-2"
+          >
             <Save className="w-4 h-4" />
             Save Changes
           </button>
+
+          {saved && (
+            <p className="text-green-400 text-sm mt-3">
+              Settings saved successfully!
+            </p>
+          )}
         </div>
       </ScrollReveal>
+
     </PageLayout>
   )
 }
