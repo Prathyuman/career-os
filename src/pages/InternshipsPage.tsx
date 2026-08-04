@@ -9,8 +9,8 @@ import {
   Bookmark,
 } from 'lucide-react'
 import { auth, db } from '../lib/firebase'
-import { fetchInternships } from '../services/internshipService'
-import {
+import { getInternships } from '../services/internshipService'
+import {  
   collection,
   addDoc,
   deleteDoc,
@@ -123,12 +123,12 @@ useEffect(() => {
   const loadInternships = async () => {
     console.log('Calling RapidAPI...')
 
-    const data = await fetchInternships()
+   const internships = await getInternships()
 
-    console.log('RapidAPI Data:', data)
-console.log("API Internship Count:", data.length)
-    setApiInternships(data)
-    console.log(data)
+console.log("Internships:", internships)
+console.log("Count:", internships.length)
+
+setApiInternships(internships)
   }
 
   loadInternships()

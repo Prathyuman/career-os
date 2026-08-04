@@ -54,7 +54,21 @@
     --ring: 193 100% 43%;
     --radius: 0.625rem;
   }
+.light {
+  --bg-void: #F8FAFC;
+  --bg-deep: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --bg-elevated: #E2E8F0;
 
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+
+  --border-subtle: rgba(0,0,0,0.08);
+
+  --glow-cyan: rgba(0,180,216,0.15);
+  --glow-coral: rgba(255,107,107,0.15);
+}
   * {
     @apply border-border;
   }
