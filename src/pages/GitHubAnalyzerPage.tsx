@@ -83,6 +83,12 @@ useEffect(() => {
       const profileData = await profileRes.json()
       const repoData = await repoRes.json()
 
+      if (!Array.isArray(repoData)) {
+        throw new Error(
+          repoData?.message || 'Could not load repositories for this user'
+        )
+      }
+
       setProfile(profileData)
       setRepos(repoData)
 

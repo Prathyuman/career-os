@@ -12,7 +12,6 @@ import ProfilePage from './pages/ProfilePage'
 import ResumeAnalyzerPage from './pages/ResumeAnalyzerPage'
 import GitHubAnalyzerPage from './pages/GitHubAnalyzerPage'
 import SkillGapPage from './pages/SkillGapPage'
-import RoadmapPage from './pages/RoadmapPage'
 import CoursesPage from './pages/CoursesPage'
 import CertificationsPage from './pages/CertificationsPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -59,7 +58,6 @@ function App() {
         <Route path="/resume-analyzer" element={<AppLayout showNav={true} showFooter={false}><ResumeAnalyzerPage /></AppLayout>} />
         <Route path="/github-analyzer" element={<AppLayout showNav={true} showFooter={false}><GitHubAnalyzerPage /></AppLayout>} />
         <Route path="/skill-gap" element={<AppLayout showNav={true} showFooter={false}><SkillGapPage /></AppLayout>} />
-        <Route path="/roadmap" element={<AppLayout showNav={true} showFooter={false}><RoadmapPage /></AppLayout>} />
         <Route path="/courses" element={<AppLayout showNav={true} showFooter={false}><CoursesPage /></AppLayout>} />
         <Route path="/certifications" element={<AppLayout showNav={true} showFooter={false}><CertificationsPage /></AppLayout>} />
         <Route path="/projects" element={<AppLayout showNav={true} showFooter={false}><ProjectsPage /></AppLayout>} />

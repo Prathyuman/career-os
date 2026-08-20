@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 
 import { auth, db } from '../lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 import {
   collection,
@@ -23,12 +24,8 @@ export default function SavedInternshipsPage() {
   const [savedInternships, setSavedInternships] =
     useState<any[]>([])
 
-  const fetchSavedInternships = async () => {
+  const fetchSavedInternships = async (user: NonNullable<typeof auth.currentUser>) => {
     try {
-      const user = auth.currentUser
-
-      if (!user) return
-
       const q = query(
         collection(db, 'savedInternships'),
         where('userId', '==', user.uid)
@@ -48,7 +45,11 @@ export default function SavedInternshipsPage() {
   }
 
   useEffect(() => {
-    fetchSavedInternships()
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchSavedInternships(user)
+    })
+
+    return () => unsubscribe()
   }, [])
 
   const removeBookmark = async (id: string) => {
@@ -63,7 +64,7 @@ export default function SavedInternshipsPage() {
         doc(db, 'savedInternships', id)
       )
 
-      fetchSavedInternships()
+      if (auth.currentUser) fetchSavedInternships(auth.currentUser)
 
       alert(
         'Internship removed successfully!'

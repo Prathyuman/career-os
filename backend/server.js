@@ -49,6 +49,13 @@ app.post("/analyze-resume", async (req, res) => {
         error: "Resume text is required",
       });
     }
+
+    if (!targetRole || !targetRole.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Target role is required",
+      });
+    }
 console.log("Resume Length:", resumeText.length);
    const prompt = `
 Analyze the following resume for the target role: ${targetRole}
@@ -117,6 +124,21 @@ ROLE MATCH
 * Do not use randomness.
 
 ========================
+SKILLS EXTRACTION
+=================
+
+Extract every technical skill, programming language, framework, library,
+tool, database, and platform the candidate explicitly demonstrates in the
+resume (via skills sections, projects, coursework, or experience).
+
+* Do NOT limit this to any predefined list — extract whatever is actually
+  present in the resume text.
+* Do NOT infer or assume skills that are not explicitly mentioned.
+* Normalize casing/naming (e.g. "react.js" -> "React", "nodejs" -> "Node.js").
+* Remove duplicates.
+* Return as many as are genuinely present (no artificial minimum or maximum).
+
+========================
 SKILL GAP ANALYSIS
 ==================
 
@@ -131,33 +153,26 @@ Identify:
 COURSE RECOMMENDATIONS
 ======================
 
-Generate exactly 5 course recommendations.
+Generate as many course recommendations as are actually needed to close the candidate's skill gaps (do NOT cap at 5, return as many as necessary to cover all missing skills).
+
+CRITICAL REQUIREMENT:
+* ALL recommended courses MUST be 100% FREE learning resources.
+* Point to free resources only: freeCodeCamp, YouTube free courses/playlists, official documentation guides, Coursera/edX free-to-audit courses, Khan Academy, MIT OpenCourseWare, MDN Web Docs, takeUforward.
+* Do NOT recommend paid-only courses. If a skill requires learning, find the free alternative.
 
 Requirements:
-
-* Use real course titles.
-* Include platform names.
+* Use real free course/tutorial titles.
+* Include platform names (e.g., "freeCodeCamp", "YouTube", "Coursera (Free Audit)", "MDN Docs").
 * Match missing skills.
-* Suitable for students.
-* Include popular learning resources.
 * Never return an empty recommendedCourses array.
-
-Example:
-
-* Python for Everybody - Coursera
-* Machine Learning Specialization - Coursera
-* Git & GitHub Crash Course - Udemy
-* AWS Cloud Practitioner Essentials - AWS Skill Builder
-* SQL for Data Science - Coursera
 
 ========================
 LEARNING ROADMAP
 ================
 
-Return exactly 5 phases.
+Return as many phases as needed to systematically close the candidate's skill gap.
 
 Each phase should:
-
 * Be practical
 * Be sequential
 * Focus on one learning milestone
@@ -190,6 +205,7 @@ CONSISTENCY RULES
 =================
 
 * Never return empty arrays unless absolutely necessary.
+* extractedSkills must reflect only skills explicitly present in the resume text.
 * missingSkills must contain at least 3 items if skill gaps exist.
 * learningRoadmap must contain exactly 5 phases.
 * strengths must contain at least 3 items.
@@ -252,6 +268,7 @@ Return ONLY valid JSON.
 "strengths": [],
 "weaknesses": [],
 
+"extractedSkills": [],
 "missingSkills": [],
 "recommendedCourses": [],
 
@@ -307,6 +324,13 @@ app.post("/analyze-github", async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Profile and repositories are required",
+      });
+    }
+
+    if (!Array.isArray(repos)) {
+      return res.status(400).json({
+        success: false,
+        error: "Repositories must be an array",
       });
     }
 
@@ -474,6 +498,227 @@ try {
     });
   }
 });
+app.post("/generate-interview", async (req, res) => {
+  try {
+    const { targetRole, skills, resumeText, round, previousQuestions } = req.body;
+
+    const roundType = round || "aptitude";
+    const roleName = targetRole || "Software Engineer";
+    const skillsList = (skills || []).join(", ") || "Software Development & Problem Solving";
+    const prevQuestionsList = Array.isArray(previousQuestions) && previousQuestions.length > 0
+      ? previousQuestions.slice(-25).map((q, i) => `${i + 1}. "${q}"`).join("\n")
+      : "None";
+
+    let prompt = "";
+
+    if (roundType === "aptitude") {
+      prompt = `
+You are a senior hiring manager conducting Round 1: Aptitude & Logical Thinking for a candidate targeting the role: "${roleName}".
+Candidate Skills: ${skillsList}.
+
+Generate 3 challenging, practical Aptitude & Logical Thinking questions.
+Include logical puzzles, quantitative reasoning, analytical sequence puzzles, or problem-solving scenarios.
+
+PREVIOUSLY ASKED QUESTIONS (STRICT DO NOT REPEAT RULE):
+${prevQuestionsList}
+
+CRITICAL RULES:
+1. Generate completely NEW, unique questions. DO NOT repeat, rephrase, or duplicate any of the previously asked questions listed above.
+2. The questions must test logical sharpness, pattern recognition, and quantitative aptitude.
+
+Return ONLY valid JSON format:
+{
+  "questions": [
+    { "id": 1, "question": "Detailed aptitude/logic question...", "topic": "Quantitative & Logic" },
+    { "id": 2, "question": "Detailed logical puzzle/scenario question...", "topic": "Analytical Thinking" },
+    { "id": 3, "question": "Detailed reasoning question...", "topic": "Problem Solving Aptitude" }
+  ]
+}
+`;
+    } else if (roundType === "dsa") {
+      prompt = `
+You are a lead technical interviewer conducting Round 2: Data Structures, Algorithms & Coding Logic for a candidate targeting the role: "${roleName}".
+Candidate Technical Skills: ${skillsList}.
+
+Generate 3 realistic Data Structures, Algorithms, and Coding Logic interview questions.
+Include questions on Data Structures (Arrays, Hash Maps, Trees, Graphs, Stacks/Queues), Algorithms (Sorting, Searching, Dynamic Programming, Recursion, Graph Traversal), and Time/Space Complexity (Big-O analysis).
+
+PREVIOUSLY ASKED QUESTIONS (STRICT DO NOT REPEAT RULE):
+${prevQuestionsList}
+
+CRITICAL RULES:
+1. Generate completely NEW, unique questions. DO NOT repeat, rephrase, or duplicate any of the previously asked questions listed above.
+2. Make questions practical for a ${roleName} tech interview.
+
+Return ONLY valid JSON format:
+{
+  "questions": [
+    { "id": 1, "question": "Detailed DSA/Algorithm question...", "topic": "Data Structures & Complexity" },
+    { "id": 2, "question": "Detailed coding logic question...", "topic": "Algorithmic Efficiency" },
+    { "id": 3, "question": "Detailed system/data structure question...", "topic": "Coding Logic" }
+  ]
+}
+`;
+    } else {
+      // Round 3: Final HR Round (Resume-Based & Professional HR)
+      const resumeSnippet = (resumeText || "").trim().substring(0, 1800) || `Candidate targeting ${roleName} with skills: ${skillsList}`;
+
+      prompt = `
+You are a Senior HR Director conducting Round 3: Final Resume-Based & Professional HR Round for a candidate applying for the role: "${roleName}".
+
+CANDIDATE RESUME & SKILLS CONTEXT:
+Resume Text / Overview:
+"${resumeSnippet}"
+
+Declared Skills: ${skillsList}
+
+PREVIOUSLY ASKED QUESTIONS (STRICT DO NOT REPEAT RULE):
+${prevQuestionsList}
+
+INSTRUCTIONS FOR ROUND 3 (RESUME-BASED & PROFESSIONAL HR):
+1. Generate 3 professional HR and behavioral questions.
+2. At least 2 of the 3 questions MUST be explicitly based on the candidate's actual RESUME provided above — referencing specific projects, technologies, education, achievements, or experience mentioned in their resume!
+3. Include real-world professional HR questions (behavioral situation using STAR approach, technical conflict resolution, workplace ethics, career trajectory, handling pressure).
+4. DO NOT repeat or rephrase any of the previously asked questions listed above.
+
+Return ONLY valid JSON format:
+{
+  "questions": [
+    { "id": 1, "question": "Detailed resume project / experience HR question...", "topic": "Resume Project & HR" },
+    { "id": 2, "question": "Detailed professional behavioral HR scenario...", "topic": "Behavioral & Leadership" },
+    { "id": 3, "question": "Detailed career alignment / resume achievement question...", "topic": "Professional HR" }
+  ]
+}
+`;
+    }
+
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    let text = result?.text || result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      } else {
+        throw e;
+      }
+    }
+
+    return res.json({ success: true, questions: parsed.questions || [] });
+  } catch (error) {
+    console.error("❌ Interview Generation Error:", error);
+    const role = req.body.targetRole || "Software Engineer";
+    if (req.body.round === "aptitude") {
+      return res.json({
+        success: true,
+        questions: [
+          { id: 1, question: "A system processes 120 requests per minute with a 15% failure rate. How many successful requests occur in 4 hours?", topic: "Quantitative Aptitude" },
+          { id: 2, question: "If 5 workers complete a project in 12 days, how many days will 3 workers take under identical conditions?", topic: "Logical Reasoning" },
+          { id: 3, question: "How would you prioritize 3 critical production tasks with competing deadlines and limited engineering bandwidth?", topic: "Analytical Thinking" }
+        ]
+      });
+    } else if (req.body.round === "dsa") {
+      return res.json({
+        success: true,
+        questions: [
+          { id: 1, question: `How would you optimize lookup and insertion times for a high-concurrency ${role} cache system?`, topic: "Data Structures & Big-O" },
+          { id: 2, question: "Explain how a Hash Table resolves collisions using chaining vs open addressing, and state worst-case complexity.", topic: "Algorithm Optimization" },
+          { id: 3, question: "Walk me through how you would detect a cycle in a Directed Graph using DFS or Kahn's algorithm.", topic: "Graph Algorithms" }
+        ]
+      });
+    } else {
+      return res.json({
+        success: true,
+        questions: [
+          { id: 1, question: `Looking at your resume projects, walk me through the technical architecture of your primary project and your specific contribution as a ${role}.`, topic: "Resume Project Deep-Dive" },
+          { id: 2, question: "Describe a situation where you had a major disagreement with a team member on technical choices. How did you handle it?", topic: "Conflict Resolution & HR" },
+          { id: 3, question: `Why are you interested in advancing your career as a ${role}, and where do you see your technical impact in 3 years?`, topic: "Professional HR & Career Goals" }
+        ]
+      });
+    }
+  }
+});
+
+app.post("/evaluate-interview", async (req, res) => {
+  try {
+    const { question, userAnswer, round, cameraActive } = req.body;
+
+    const prompt = `
+You are a senior tech & HR interviewer and executive presence coach.
+Interview Round: ${round}
+Question: "${question}"
+Candidate Answer: "${userAnswer}"
+Camera Active during answer delivery: ${cameraActive ? "Yes" : "No"}
+
+Evaluate the candidate's answer constructively, fairly, and accurately.
+${cameraActive || round === "hr" ? "Also evaluate executive presence and body language indicators (posture, eye contact, confidence tone)." : ""}
+
+Return ONLY valid JSON format:
+{
+  "score": 8,
+  "feedback": "2-3 sentence overview of answer quality and technical depth.",
+  "keyStrengths": ["Key strength 1", "Key strength 2"],
+  "missedPoints": ["Key point missed or trade-off not mentioned"],
+  "idealAnswer": "A concise model answer demonstrating best practices.",
+  "bodyLanguage": {
+    "postureScore": 88,
+    "eyeContact": "Direct camera engagement and steady composure.",
+    "confidenceTone": "Clear and professional vocal & posture delivery.",
+    "bodyLanguageTip": "Maintain eye contact with the lens when summarizing project achievements."
+  }
+}
+`;
+
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    let text = result?.text || result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        parsed = JSON.parse(match[0]);
+      } else {
+        throw e;
+      }
+    }
+
+    return res.json({ success: true, evaluation: parsed });
+  } catch (error) {
+    console.error("❌ Interview Evaluation Error:", error);
+    return res.json({
+      success: true,
+      evaluation: {
+        score: 7,
+        feedback: "Good structured response addressing the core question requirements.",
+        keyStrengths: ["Clear communication", "Logical structure"],
+        missedPoints: ["Could include concrete metrics or edge-case handling"],
+        idealAnswer: "An optimal answer explains the core solution step-by-step and discusses trade-offs.",
+        bodyLanguage: {
+          postureScore: 85,
+          eyeContact: "Maintained steady gaze towards camera preview.",
+          confidenceTone: "Professional and composed articulation.",
+          bodyLanguageTip: "Keep shoulders relaxed and posture upright during your response."
+        }
+      }
+    });
+  }
+});
+
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });

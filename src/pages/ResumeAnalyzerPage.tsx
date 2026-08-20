@@ -26,6 +26,27 @@ import {
   Download,
 } from 'lucide-react'
 
+interface ResumeAnalysisResult {
+  atsScore?: number
+  roleMatch?: number
+  atsCompatibility?: number
+  contentQuality?: number
+  formatting?: number
+  keywordOptimization?: number
+  atsTips?: string[]
+  contentTips?: string[]
+  formattingTips?: string[]
+  keywordTips?: string[]
+  strengths?: string[]
+  weaknesses?: string[]
+  missingSkills?: string[]
+  recommendedRoles?: string[]
+  recommendedCourses?: string[]
+  learningRoadmap?: string[]
+  careerReadinessScore?: number
+  areasToFocus?: string[]
+  extractedSkills?: string[]
+}
 
 export default function ResumeAnalyzerPage() {
   const [uploaded, setUploaded] = useState(false)
@@ -33,7 +54,7 @@ const [analyzing, setAnalyzing] = useState(false)
 const [fileName, setFileName] = useState('')
 const [foundSkills, setFoundSkills] = useState<string[]>([])
 const [, setResumeText] = useState('')
-const [analysisResult, setAnalysisResult] = useState<any>(null)
+const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResult | null>(null)
 const [targetRole, setTargetRole] = useState('')
 
 
@@ -194,26 +215,9 @@ console.log("ATS Compatibility:", parsedResult.atsCompatibility)
 console.log("Content Quality:", parsedResult.contentQuality)
 console.log("Formatting:", parsedResult.formatting)
 console.log("Keyword Optimization:", parsedResult.keywordOptimization)
-const sampleSkills = [
-  'JavaScript',
-  'React',
-  'TypeScript',
-  'Node.js',
-  'Python',
-  'Java',
-  'Git',
-  'Docker',
-  'AWS',
-  'HTML',
-  'CSS',
-  'MongoDB',
-  'C',
-  'C++',
-]
-
-const detectedSkills = sampleSkills.filter((skill) =>
-  extractedText.toLowerCase().includes(skill.toLowerCase())
-)
+const detectedSkills: string[] = Array.isArray(parsedResult.extractedSkills)
+  ? parsedResult.extractedSkills
+  : []
 
 setFoundSkills(detectedSkills)
 
@@ -224,6 +228,8 @@ if (user) {
     doc(db, 'resumeAnalysis', user.uid),
     {
       fileName: file.name,
+
+      targetRole,
 
       atsScore: parsedResult.atsScore,
       roleMatch: parsedResult.roleMatch,

@@ -1,7 +1,15 @@
-export const fetchJSearchInternships = async () => {
+import { extractSkillsFromText } from './extractSkills'
+
+export const fetchJSearchInternships = async (searchQuery?: string) => {
   try {
+    const queryText = searchQuery?.trim()
+      ? `${searchQuery.trim()} internship`
+      : 'software internship'
+
     const response = await fetch(
-      "https://jsearch.p.rapidapi.com/search?query=software%20internship&num_pages=1",
+      `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(
+        queryText
+      )}&num_pages=1`,
       {
         method: "GET",
         headers: {
@@ -19,7 +27,7 @@ export const fetchJSearchInternships = async () => {
       category: "Software Engineering",
       location: job.job_city || job.job_country || "Remote",
       stipend: "Not Disclosed",
-      skills: [],
+      skills: extractSkillsFromText(job.job_description || ""),
       applyLink: job.job_apply_link || "#",
     }))
   } catch (error) {

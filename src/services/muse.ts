@@ -1,7 +1,9 @@
-export const fetchMuseInternships = async () => {
+import { extractSkillsFromText } from './extractSkills'
+
+export const fetchMuseInternships = async (searchQuery?: string) => {
   try {
     const response = await fetch(
-      'https://www.themuse.com/api/public/jobs?page=1'
+      'https://www.themuse.com/api/public/jobs?page=1&level=Internship'
     )
 
     const data = await response.json()
@@ -13,7 +15,19 @@ export const fetchMuseInternships = async () => {
       JSON.stringify(data.results?.[0], null, 2)
     )
 
-    return (data.results || []).map((job: any) => {
+    let results = data.results || []
+
+    // Muse's public endpoint has no free-text search param, so filter
+    // client-side against title/description when a personalized query exists.
+    const keyword = searchQuery?.trim().toLowerCase()
+    if (keyword) {
+      results = results.filter((job: any) => {
+        const haystack = `${job.name || ''} ${job.contents || ''}`.toLowerCase()
+        return haystack.includes(keyword)
+      })
+    }
+
+    return results.map((job: any) => {
 
       const title = job.name?.toLowerCase() || ""
 
@@ -61,7 +75,7 @@ export const fetchMuseInternships = async () => {
         category,
         location: job.locations?.[0]?.name || "Remote",
         stipend: "Not Disclosed",
-        skills: [],
+        skills: extractSkillsFromText(job.contents || ""),
         applyLink: job.refs?.landing_page || "#",
       }
     })

@@ -13,7 +13,7 @@ const appLinks = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Resume', href: '/resume-analyzer' },
   { label: 'GitHub', href: '/github-analyzer' },
-  { label: 'Roadmap', href: '/roadmap' },
+  { label: 'Projects', href: '/projects' },
   { label: 'Jobs', href: '/jobs' },
   { label: 'Interview', href: '/interview' },
 ]

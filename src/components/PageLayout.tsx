@@ -35,9 +35,21 @@ export default function PageLayout({ children, title }: PageLayoutProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      <main className="lg:ml-64 p-4 md:p-8">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-text-primary mb-6 md:mb-8">{title}</h1>
+      <main className="lg:ml-64 p-4 sm:p-6 lg:p-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-8 border-b border-border-subtle">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-medium text-cyan uppercase tracking-wider mb-1">
+                <span>CareerOS</span>
+                <span>/</span>
+                <span className="text-text-muted">{title}</span>
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
+                {title}
+              </h1>
+            </div>
+          </div>
           {children}
         </div>
       </main>

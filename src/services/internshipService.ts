@@ -3,9 +3,9 @@ import { fetchAdzunaInternships } from "./adzuna"
 import { fetchRemotiveInternships } from "./remotive"
 import { fetchMuseInternships } from "./muse"
 
-export const getInternships = async () => {
+export const getInternships = async (searchQuery?: string) => {
   try {
-    const data = await fetchJSearchInternships()
+    const data = await fetchJSearchInternships(searchQuery)
 
     if (data.length > 0) {
       console.log("Using JSearch API")
@@ -38,5 +38,5 @@ export const getInternships = async () => {
   }
 
   console.log("Using Muse API")
-  return await fetchMuseInternships()
+  return await fetchMuseInternships(searchQuery)
 }
