@@ -16,33 +16,33 @@ import {
   Shield,
   X,
   Zap,
-  Sparkles
+  ChevronRight
 } from 'lucide-react'
 
-const mainNavItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', color: 'text-cyan-400' },
-  { icon: User, label: 'Profile', href: '/profile', color: 'text-blue-400' },
+const workspaceItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: User, label: 'Candidate Profile', href: '/profile' },
 ]
 
 const analysisTools = [
-  { icon: FileText, label: 'Resume Analyzer', href: '/resume-analyzer', color: 'text-emerald-400', badge: 'ATS AI' },
-  { icon: Github, label: 'GitHub Analyzer', href: '/github-analyzer', color: 'text-purple-400' },
-  { icon: BarChart3, label: 'Skill Gap', href: '/skill-gap', color: 'text-amber-400' },
+  { icon: FileText, label: 'Resume Analyzer', href: '/resume-analyzer', badge: 'ATS AI' },
+  { icon: Github, label: 'GitHub Audit', href: '/github-analyzer' },
+  { icon: BarChart3, label: 'Skill Gap Analysis', href: '/skill-gap' },
 ]
 
-const learningCareer = [
-  { icon: BookOpen, label: 'Courses', href: '/courses', color: 'text-cyan-400' },
-  { icon: Award, label: 'Certifications', href: '/certifications', color: 'text-amber-400' },
-  { icon: FolderGit2, label: 'Projects', href: '/projects', color: 'text-blue-400' },
-  { icon: Briefcase, label: 'Internships', href: '/internships', color: 'text-emerald-400' },
-  { icon: Search, label: 'Job Search', href: '/jobs', color: 'text-indigo-400' },
-  { icon: MessageSquare, label: 'AI Interview Coach', href: '/interview', color: 'text-cyan-400', badge: '3-Round' },
-  { icon: TrendingUp, label: 'Progress Tracking', href: '/progress', color: 'text-purple-400' },
+const executionPrep = [
+  { icon: BookOpen, label: 'Courses & Skills', href: '/courses' },
+  { icon: Award, label: 'Certifications', href: '/certifications' },
+  { icon: FolderGit2, label: 'Project Blueprints', href: '/projects' },
+  { icon: Briefcase, label: 'Internships', href: '/internships' },
+  { icon: Search, label: 'Job Search', href: '/jobs' },
+  { icon: MessageSquare, label: 'AI Mock Interview', href: '/interview', badge: '3-Round' },
+  { icon: TrendingUp, label: 'Progress Tracking', href: '/progress' },
 ]
 
-const systemItems = [
-  { icon: Settings, label: 'Settings', href: '/settings', color: 'text-slate-400' },
-  { icon: Shield, label: 'Admin Portal', href: '/admin', color: 'text-rose-400' },
+const platformSettings = [
+  { icon: Settings, label: 'Settings', href: '/settings' },
+  { icon: Shield, label: 'Admin Portal', href: '/admin' },
 ]
 
 interface SidebarProps {
@@ -52,12 +52,12 @@ interface SidebarProps {
 export default function Sidebar({ onClose }: SidebarProps) {
   const location = useLocation()
 
-  const renderSection = (title: string, items: typeof mainNavItems) => (
+  const renderNavGroup = (title: string, items: typeof workspaceItems) => (
     <div className="mb-6">
-      <div className="px-3 mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 font-mono">
-        <span>{title}</span>
+      <div className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500 font-mono">
+        {title}
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {items.map((item: any) => {
           const isActive = location.pathname === item.href
           return (
@@ -65,31 +65,20 @@ export default function Sidebar({ onClose }: SidebarProps) {
               key={item.href}
               to={item.href}
               onClick={onClose}
-              className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+              className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 isActive
-                  ? 'bg-gradient-to-r from-cyan-500/20 via-indigo-500/15 to-transparent text-cyan-300 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 border border-transparent'
+                  ? 'bg-sky-500/10 text-sky-400 font-semibold border-l-2 border-sky-400'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              {/* Active Indicator Bar */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-cyan-400 rounded-r-full shadow-lg shadow-cyan-400" />
-              )}
-
-              <div className="flex items-center gap-3">
-                <div className={`p-1.5 rounded-lg transition-all ${
-                  isActive ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 text-slate-400 group-hover:text-cyan-400 group-hover:bg-cyan-500/10'
-                }`}>
-                  <item.icon className="w-4 h-4" />
-                </div>
-                <span>{item.label}</span>
+              <div className="flex items-center gap-2.5">
+                <item.icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-sky-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                <span className="truncate">{item.label}</span>
               </div>
 
               {item.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  isActive
-                    ? 'bg-cyan-400 text-slate-950'
-                    : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
+                  isActive ? 'bg-sky-500/20 text-sky-300' : 'bg-slate-800 text-slate-400'
                 }`}>
                   {item.badge}
                 </span>
@@ -102,39 +91,43 @@ export default function Sidebar({ onClose }: SidebarProps) {
   )
 
   return (
-    <aside className="w-64 h-full bg-[#0B0F24]/90 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between overflow-y-auto">
+    <aside className="w-64 h-full pro-sidebar flex flex-col justify-between overflow-y-auto">
       <div>
-        {/* Mobile Sidebar Header */}
-        <div className="p-4 flex items-center justify-between border-b border-white/10 lg:hidden">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-cyan-400" />
-            <span className="font-display font-bold text-lg text-cyan-400">CareerOS</span>
+        {/* Sidebar Brand Header */}
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold shadow-sm">
+              <Zap className="w-4 h-4 fill-current" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm text-slate-100 leading-tight">CareerOS</span>
+              <span className="text-[10px] text-slate-500 font-mono">Enterprise v2.4</span>
+            </div>
           </div>
+
           {onClose && (
-            <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10">
+            <button onClick={onClose} className="lg:hidden p-1 text-slate-400 hover:text-white">
               <X className="w-5 h-5" />
             </button>
           )}
         </div>
 
-        {/* Sidebar Nav Sections */}
-        <div className="p-4">
-          {renderSection('Overview', mainNavItems)}
-          {renderSection('AI Analyzers', analysisTools)}
-          {renderSection('Career & Learning', learningCareer)}
-          {renderSection('Account', systemItems)}
+        {/* Nav Links */}
+        <div className="p-3">
+          {renderNavGroup('Workspace', workspaceItems)}
+          {renderNavGroup('Analytics & AI', analysisTools)}
+          {renderNavGroup('Career Modules', executionPrep)}
+          {renderNavGroup('System', platformSettings)}
         </div>
       </div>
 
-      {/* Footer Banner */}
-      <div className="p-4 m-3 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-transparent border border-cyan-500/20 text-center">
-        <div className="flex items-center justify-center gap-1.5 text-cyan-400 text-xs font-bold mb-1">
-          <Sparkles className="w-3.5 h-3.5" /> CareerOS PRO
+      {/* Footer Info */}
+      <div className="p-3 m-3 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+          <span className="font-mono text-[11px]">System Nominal</span>
         </div>
-        <p className="text-[11px] text-slate-400 mb-2">AI Career Intelligence Active</p>
-        <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-          <div className="w-3/4 h-full bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full" />
-        </div>
+        <span className="text-[10px] text-slate-500 font-mono">v2.4.0</span>
       </div>
     </aside>
   )

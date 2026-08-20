@@ -19,9 +19,9 @@ import {
   BookOpen,
   CheckCircle2,
   ShieldCheck,
-  Flame,
   Activity,
-  Compass
+  Layers,
+  Search
 } from 'lucide-react'
 import {
   collection,
@@ -37,46 +37,36 @@ const quickActions = [
   {
     icon: FileText,
     label: 'Resume AI Scan',
-    desc: 'ATS score & skill match',
+    desc: 'ATS compatibility & skill matching',
     href: '/resume-analyzer',
-    color: 'from-cyan-500 to-blue-600',
-    textColor: 'text-cyan-400',
-    badge: 'AI Powered',
+    badge: 'ATS Scanner',
   },
   {
     icon: Github,
-    label: 'GitHub Analyzer',
-    desc: 'Audit portfolio & commits',
+    label: 'GitHub Audit',
+    desc: 'Repository & commit code audit',
     href: '/github-analyzer',
-    color: 'from-purple-500 to-indigo-600',
-    textColor: 'text-purple-400',
     badge: 'Code Scan',
   },
   {
     icon: BarChart3,
     label: 'Skill Gap Analysis',
-    desc: 'Target missing skills',
+    desc: 'Identify missing technical requirements',
     href: '/skill-gap',
-    color: 'from-amber-500 to-orange-600',
-    textColor: 'text-amber-400',
-    badge: 'Strategic',
+    badge: 'Analytics',
   },
   {
     icon: FolderGit2,
     label: 'Project Blueprints',
-    desc: 'Build portfolio projects',
+    desc: 'Build portfolio-ready projects',
     href: '/projects',
-    color: 'from-blue-500 to-cyan-600',
-    textColor: 'text-blue-400',
-    badge: 'Hands-on',
+    badge: 'Execution',
   },
   {
     icon: Briefcase,
     label: 'Internship Matcher',
-    desc: 'Live role applications',
+    desc: 'Realtime matching & applications',
     href: '/internships',
-    color: 'from-emerald-500 to-teal-600',
-    textColor: 'text-emerald-400',
     badge: 'Realtime',
   },
   {
@@ -84,32 +74,26 @@ const quickActions = [
     label: 'AI Interview Coach',
     desc: '3-Round mock with Camera AI',
     href: '/interview',
-    color: 'from-cyan-500 to-indigo-600',
-    textColor: 'text-cyan-300',
     badge: 'WebCam AI',
   },
   {
     icon: BookOpen,
     label: 'Free Courses',
-    desc: 'Certification & Non-Cert',
+    desc: 'Certification & Non-Cert tracks',
     href: '/courses',
-    color: 'from-cyan-500 to-teal-500',
-    textColor: 'text-cyan-400',
-    badge: 'Uncapped',
+    badge: 'Curated',
   },
   {
     icon: Award,
     label: 'Certifications',
     desc: 'Upload completion proof',
     href: '/certifications',
-    color: 'from-amber-500 to-yellow-500',
-    textColor: 'text-amber-400',
-    badge: 'Verified',
+    badge: 'Verification',
   },
 ]
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState('Developer')
+  const [userName, setUserName] = useState('Candidate')
   const [certificateCount, setCertificateCount] = useState(0)
   const [progressScore, setProgressScore] = useState(0)
   const [atsScore, setAtsScore] = useState(0)
@@ -121,13 +105,13 @@ export default function DashboardPage() {
       try {
         if (user.displayName) setUserName(user.displayName.split(' ')[0])
 
-        // Certificates count
+        // Fetch Certificates
         const certSnap = await getDocs(
           query(collection(db, 'certifications'), where('userId', '==', user.uid))
         )
         setCertificateCount(certSnap.size)
 
-        // Resume & Progress score
+        // Fetch Resume & Progress Data
         const resumeDoc = await getDoc(doc(db, 'resumeAnalysis', user.uid))
 
         let pCount = 0
@@ -148,7 +132,6 @@ export default function DashboardPage() {
           }
         }
 
-        // Progress Score Calculation
         const pScore = calculateProgressScore({
           careerReadinessScore: rData.careerReadinessScore,
           atsScore: rData.atsCompatibility,
@@ -171,153 +154,126 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <PageLayout title="AI Career Command Center">
+    <PageLayout title="Executive Command Center">
       {/* Hero Welcome Banner */}
-      <ScrollReveal className="mb-8">
-        <div className="relative rounded-3xl p-8 md:p-10 overflow-hidden bg-gradient-to-r from-slate-900 via-[#0D1532] to-[#151D42] border border-cyan-500/30 shadow-2xl shadow-cyan-500/10">
-          {/* Decorative Glow Elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-            <div className="space-y-3 max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" /> Career Readiness Command
+      <ScrollReveal className="mb-6">
+        <div className="pro-card p-6 sm:p-8 bg-slate-900/90 border border-slate-800 relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded text-xs font-mono font-semibold badge-sky">
+                  TARGET ROLE: {targetRole.toUpperCase()}
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                  Target: {targetRole}
+                <span className="px-2.5 py-0.5 rounded text-xs font-mono font-semibold badge-emerald">
+                  SYSTEM READY
                 </span>
               </div>
 
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-                Welcome back, <span className="text-gradient-cyan">{userName}</span> 👋
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Welcome, {userName}
               </h1>
 
-              <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-                Your AI Career Intelligence System is active. Monitor your ATS score, run mock interviews, and close skill gaps to accelerate your hiring velocity.
+              <p className="text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+                CareerOS Career Readiness System is monitoring your ATS score, skill coverage, and interview preparation.
               </p>
             </div>
 
-            {/* Circular Readiness Meter */}
-            <div className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
-              <div className="relative w-24 h-24 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-slate-800"
-                    strokeWidth="3.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            {/* Overall Score Progress Card */}
+            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-5 shrink-0 w-full sm:w-auto">
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                  Career Readiness
+                </div>
+                <div className="text-3xl font-extrabold text-white font-mono">{progressScore}%</div>
+                <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-sky-500 rounded-full transition-all duration-700"
+                    style={{ width: `${progressScore}%` }}
                   />
-                  <path
-                    className="text-cyan-400 transition-all duration-1000 ease-out"
-                    strokeDasharray={`${progressScore}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="font-mono text-2xl font-black text-white">{progressScore}%</span>
-                  <span className="text-[9px] font-bold uppercase text-cyan-400 tracking-wider">Score</span>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Career Readiness</div>
-                <div className="text-base font-bold text-white">
-                  {progressScore >= 80 ? '🌟 Highly Interview Ready' : progressScore >= 60 ? '⚡ Solid Progress' : '🚀 Building Fundamentals'}
-                </div>
-                <Link to="/progress" className="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1">
-                  View Score Breakdown <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
+              <Link
+                to="/progress"
+                className="px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors shadow-sm flex items-center gap-1.5"
+              >
+                <span>Report</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </div>
       </ScrollReveal>
 
       {/* Metrics Row */}
-      <ScrollReveal className="mb-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">ATS Resume Health</span>
-              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                <FileText className="w-5 h-5" />
-              </div>
+      <ScrollReveal className="mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="pro-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">ATS Health</span>
+              <FileText className="w-4 h-4 text-sky-400" />
             </div>
-            <div className="text-3xl font-black text-white font-mono mb-1">{atsScore > 0 ? `${atsScore}/100` : 'Not Scanned'}</div>
-            <p className="text-xs text-slate-400">ATS formatting & keyword optimization</p>
+            <div className="text-2xl font-bold text-white font-mono mb-1">
+              {atsScore > 0 ? `${atsScore} / 100` : 'Pending'}
+            </div>
+            <p className="text-xs text-slate-400">Resume scan score</p>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Certifications Uploaded</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <Award className="w-5 h-5" />
-              </div>
+          <div className="pro-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono font-mono">Certifications</span>
+              <Award className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-3xl font-black text-white font-mono mb-1">{certificateCount}</div>
-            <p className="text-xs text-slate-400">Verified credentials uploaded</p>
+            <div className="text-2xl font-bold text-white font-mono mb-1">{certificateCount}</div>
+            <p className="text-xs text-slate-400">Verified credentials</p>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Projects Built</span>
-              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                <FolderGit2 className="w-5 h-5" />
-              </div>
+          <div className="pro-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">Projects</span>
+              <FolderGit2 className="w-4 h-4 text-indigo-400" />
             </div>
-            <div className="text-3xl font-black text-white font-mono mb-1">{completedProjCount} / 3</div>
-            <p className="text-xs text-slate-400">Portfolio blueprints completed</p>
+            <div className="text-2xl font-bold text-white font-mono mb-1">{completedProjCount} / 3</div>
+            <p className="text-xs text-slate-400">Portfolio blueprints</p>
           </div>
 
-          <div className="glass-card rounded-2xl p-6 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">AI Mock Interviews</span>
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <MessageSquare className="w-5 h-5" />
-              </div>
+          <div className="pro-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">Mock Interview</span>
+              <MessageSquare className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-3xl font-black text-white font-mono mb-1">3-Round</div>
-            <p className="text-xs text-slate-400">Aptitude, DSA & Camera AI HR</p>
+            <div className="text-2xl font-bold text-white font-mono mb-1">3-Round AI</div>
+            <p className="text-xs text-slate-400">Aptitude, DSA & Camera HR</p>
           </div>
         </div>
       </ScrollReveal>
 
-      {/* Quick Action Grid */}
-      <ScrollReveal className="mb-10">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" /> Career OS Tools & Modules
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">Select an AI module to scan, build, or practice for your target role.</p>
-          </div>
+      {/* Module Tool Grid */}
+      <ScrollReveal className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <span>CareerOS Core Modules</span>
+          </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action) => (
             <Link
               key={action.label}
               to={action.href}
-              className="glass-card-interactive rounded-2xl p-6 flex flex-col justify-between group relative overflow-hidden"
+              className="pro-card-interactive p-5 flex flex-col justify-between group"
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} p-3 text-slate-950 flex items-center justify-center shadow-lg`}>
-                    <action.icon className="w-6 h-6 fill-current" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2 rounded-lg bg-slate-800 text-sky-400 group-hover:bg-sky-500 group-hover:text-slate-950 transition-colors">
+                    <action.icon className="w-4 h-4" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-white/5 border border-white/10 text-slate-300">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-slate-400">
                     {action.badge}
                   </span>
                 </div>
 
-                <h3 className="text-base font-extrabold text-white mb-1 group-hover:text-cyan-300 transition-colors">
+                <h3 className="text-sm font-bold text-slate-100 mb-1 group-hover:text-sky-400 transition-colors">
                   {action.label}
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed mb-4">
@@ -325,9 +281,9 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs font-bold text-cyan-400 group-hover:translate-x-1 transition-transform">
-                <span>Launch Tool</span>
-                <ArrowRight className="w-4 h-4" />
+              <div className="flex items-center justify-between text-xs font-semibold text-sky-400 pt-3 border-t border-slate-800">
+                <span>Access Module</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
           ))}
